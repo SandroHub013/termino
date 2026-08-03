@@ -1,0 +1,86 @@
+import { DemoAscii } from "@/components/demos/demo-ascii";
+import { TerminalWindow } from "@/components/terminal";
+import { CodeBlock } from "@/components/code-block";
+import { PropsTable } from "@/components/docs";
+
+# ASCIIFont
+
+Display ASCII art text with different font styles. Render large decorative text directly in the terminal.
+
+<TerminalWindow title="components/ascii-font" right={<span className="text-term-green text-[11px]">live</span>}>
+  <DemoAscii />
+</TerminalWindow>
+
+## Renderable API
+
+<CodeBlock
+  title="renderable"
+  code={`import { ASCIIFontRenderable, ASCIIFontStyles, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+const font = new ASCIIFontRenderable(renderer, {
+  id: "logo",
+  content: "OPENTUI",
+  fontStyle: ASCIIFontStyles.block,
+  fg: "#7dcfff",
+})
+
+renderer.root.add(font)`}
+/>
+
+## Construct API
+
+<CodeBlock
+  title="construct"
+  code={`import { ASCIIFont, ASCIIFontStyles, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+renderer.root.add(
+  ASCIIFont({
+    content: "OPENTUI",
+    fontStyle: ASCIIFontStyles.block,
+    fg: "#bb9af7",
+  }),
+)`}
+/>
+
+## Font styles
+
+Available styles:
+
+| Style | Look |
+| --- | --- |
+| `ASCIIFontStyles.block` | Heavy filled blocks |
+| `ASCIIFontStyles.bubble` | Outline circles |
+| `ASCIIFontStyles.banner` | Double-stroke banner |
+| `ASCIIFontStyles.standard` | Standard figlet |
+| `ASCIIFontStyles.slant` | Slanted italic |
+| `ASCIIFontStyles.small` | Compact single-line |
+
+## Styling
+
+<CodeBlock
+  code={`// Combine with attributes
+const font = new ASCIIFontRenderable(renderer, {
+  id: "logo",
+  content: "TERMINAL",
+  fontStyle: ASCIIFontStyles.slant,
+  fg: "#f7768e",
+  bg: "#1a1b26",
+  attributes: TextAttributes.BOLD,
+})`}
+/>
+
+## Properties
+
+<PropsTable
+  props={[
+    { name: "content", type: "string", default: '""', description: "Text to render as ASCII art" },
+    { name: "fontStyle", type: "ASCIIFontStyles", default: "block", description: "Font style for the glyphs" },
+    { name: "fg", type: "string | RGBA", default: '"#FFFFFF"', description: "Foreground color" },
+    { name: "bg", type: "string | RGBA", default: "transparent", description: "Background color" },
+    { name: "attributes", type: "TextAttributes", default: "0", description: "Text styling attributes" },
+  ]}
+/>

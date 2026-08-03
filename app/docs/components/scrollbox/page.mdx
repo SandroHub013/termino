@@ -1,0 +1,190 @@
+import { DemoScrollBox } from "@/components/demos/demo-scrollbox";
+import { TerminalWindow } from "@/components/terminal";
+import { CodeBlock } from "@/components/code-block";
+import { PropsTable, KeyTable } from "@/components/docs";
+
+# ScrollBox
+
+A scrollable container that supports horizontal and vertical scrolling, sticky scroll behavior, viewport culling, and customizable scrollbars.
+
+<TerminalWindow title="components/scrollbox — wheel or buttons" right={<span className="text-term-green text-[11px]">live</span>}>
+  <DemoScrollBox />
+</TerminalWindow>
+
+## Renderable API
+
+<CodeBlock
+  title="renderable"
+  code={`import { ScrollBoxRenderable, BoxRenderable, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+const scrollbox = new ScrollBoxRenderable(renderer, {
+  id: "scrollbox",
+  width: 40,
+  height: 20,
+})
+
+for (let i = 0; i < 100; i++) {
+  scrollbox.add(
+    new BoxRenderable(renderer, {
+      id: \`item-\${i}\`,
+      width: "100%",
+      height: 2,
+      backgroundColor: i % 2 === 0 ? "#292e42" : "#2f3449",
+    }),
+  )
+}
+
+renderer.root.add(scrollbox)`}
+/>
+
+## Construct API
+
+<CodeBlock
+  title="construct"
+  code={`import { ScrollBox, Box, Text, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+renderer.root.add(
+  ScrollBox(
+    {
+      width: 40,
+      height: 20,
+    },
+    ...Array.from({ length: 100 }, (_, i) =>
+      Box(
+        { width: "100%", padding: 1, backgroundColor: i % 2 === 0 ? "#292e42" : "#2f3449" },
+        Text({ content: \`Item \${i}\` }),
+      ),
+    ),
+  ),
+)`}
+/>
+
+## Sticky scroll
+
+Keep content pinned to an edge as new content arrives. Useful for log viewers or chat interfaces:
+
+<CodeBlock
+  code={`const scrollbox = new ScrollBoxRenderable(renderer, {
+  id: "logs",
+  width: 60,
+  height: 20,
+  stickyScroll: true,
+  stickyStart: "bottom", // keep scrolled to bottom
+})`}
+/>
+
+Sticky positions:
+
+- `"bottom"` — stay scrolled to bottom (default for chat/logs)
+- `"top"` — stay scrolled to top
+- `"left"` — stay scrolled to left
+- `"right"` — stay scrolled to right
+
+When you scroll away from the sticky position, sticky behavior pauses until you scroll back to the sticky edge.
+
+## Bidirectional scrolling
+
+<CodeBlock
+  code={`const scrollbox = new ScrollBoxRenderable(renderer, {
+  id: "canvas",
+  width: 60,
+  height: 30,
+  scrollX: true,
+  scrollY: true,
+})`}
+/>
+
+By default, `scrollY` is `true` and `scrollX` is `false`.
+
+## Viewport culling
+
+Render only visible children for large content:
+
+<CodeBlock
+  code={`const scrollbox = new ScrollBoxRenderable(renderer, {
+  id: "large-list",
+  width: 40,
+  height: 20,
+  viewportCulling: true,
+})`}
+/>
+
+Viewport culling skips render calls for offscreen children, so their `renderBefore` and `renderAfter` hooks do not run. Do not make layout or state depend on render hooks.
+
+## Scroll methods
+
+<CodeBlock
+  code={`scrollbox.scrollBy(5)                       // scroll down 5 lines
+scrollbox.scrollBy({ x: 10, y: 5 })        // relative, both axes
+scrollbox.scrollBy(1, "viewport")          // scroll by page
+scrollbox.scrollTo(0)                      // scroll to top
+scrollbox.scrollTo({ x: 0, y: 100 })       // absolute position
+scrollbox.scrollChildIntoView("row-42")    // reveal a nested child`}
+/>
+
+`scrollChildIntoView` uses DOM-style "nearest" behavior: if the child already fits, the call is a no-op; otherwise it scrolls the minimum distance to reveal it.
+
+## Keyboard navigation
+
+<KeyTable
+  keys={[
+    ["↑ ↓", "Scroll by line"],
+    ["← →", "Scroll by column (when scrollX)"],
+    ["Page Up / Page Down", "Scroll by page"],
+    ["Home / End", "Scroll to start / end"],
+  ]}
+/>
+
+## Customizing scrollbars
+
+<CodeBlock
+  code={`const scrollbox = new ScrollBoxRenderable(renderer, {
+  id: "styled-scroll",
+  width: 40,
+  height: 20,
+  scrollbarOptions: {
+    showArrows: true,
+    trackOptions: {
+      foregroundColor: "#7aa2f7",
+      backgroundColor: "#414868",
+    },
+  },
+  verticalScrollbarOptions: { trackOptions: { backgroundColor: "#333" } },
+  horizontalScrollbarOptions: { trackOptions: { backgroundColor: "#333" } },
+})`}
+/>
+
+## Properties
+
+<PropsTable
+  props={[
+    { name: "scrollX", type: "boolean", default: "false", description: "Enable horizontal scrolling" },
+    { name: "scrollY", type: "boolean", default: "true", description: "Enable vertical scrolling" },
+    { name: "stickyScroll", type: "boolean", default: "false", description: "Keep scroll pinned to an edge" },
+    { name: "stickyStart", type: '"top" | "bottom" | "left" | "right"', default: "-", description: "Which edge to stick to" },
+    { name: "viewportCulling", type: "boolean", default: "true", description: "Only render visible children" },
+    { name: "rootOptions", type: "BoxOptions", default: "-", description: "Style options for root container" },
+    { name: "wrapperOptions", type: "BoxOptions", default: "-", description: "Style options for wrapper" },
+    { name: "viewportOptions", type: "BoxOptions", default: "-", description: "Style options for viewport" },
+    { name: "contentOptions", type: "BoxOptions", default: "-", description: "Style options for content container" },
+    { name: "scrollbarOptions", type: "ScrollBarOptions", default: "-", description: "Options for both scrollbars" },
+    { name: "verticalScrollbarOptions", type: "ScrollBarOptions", default: "-", description: "Options for vertical scrollbar" },
+    { name: "horizontalScrollbarOptions", type: "ScrollBarOptions", default: "-", description: "Options for horizontal scrollbar" },
+  ]}
+/>
+
+## Internal components
+
+ScrollBox exposes its internal components for advanced use:
+
+<CodeBlock
+  code={`scrollbox.wrapper                // BoxRenderable — outer wrapper
+scrollbox.viewport               // BoxRenderable — visible area
+scrollbox.content                // ContentRenderable — holds children
+scrollbox.horizontalScrollBar    // ScrollBarRenderable
+scrollbox.verticalScrollBar      // ScrollBarRenderable`}
+/>

@@ -1,0 +1,66 @@
+import { DemoSlider } from "@/components/demos/demo-slider";
+import { TerminalWindow } from "@/components/terminal";
+import { CodeBlock } from "@/components/code-block";
+import { PropsTable } from "@/components/docs";
+
+# Slider
+
+A draggable slider for continuous values. Supports vertical and horizontal orientations.
+
+<TerminalWindow title="components/slider — focus, ←→ or drag" right={<span className="text-term-green text-[11px]">live</span>}>
+  <DemoSlider />
+</TerminalWindow>
+
+## Basic usage
+
+Construct API is not available yet — use `SliderRenderable` directly:
+
+<CodeBlock
+  title="renderable"
+  code={`import { SliderRenderable, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+const slider = new SliderRenderable(renderer, {
+  id: "volume",
+  orientation: "horizontal",
+  width: 30,
+  height: 1,
+  min: 0,
+  max: 100,
+  value: 25,
+  onChange: (value) => {
+    console.log("Value:", value)
+  },
+})
+
+renderer.root.add(slider)`}
+/>
+
+## Vertical slider
+
+<CodeBlock
+  code={`const slider = new SliderRenderable(renderer, {
+  orientation: "vertical",
+  width: 2,
+  height: 10,
+  min: 0,
+  max: 1,
+  value: 0.5,
+})`}
+/>
+
+## Properties
+
+<PropsTable
+  props={[
+    { name: "orientation", type: '"vertical" | "horizontal"', default: "required", description: "Slider direction" },
+    { name: "value", type: "number", default: "min", description: "Current value" },
+    { name: "min", type: "number", default: "0", description: "Minimum value" },
+    { name: "max", type: "number", default: "100", description: "Maximum value" },
+    { name: "viewPortSize", type: "number", default: "Math.max(1, (max - min) * 0.1)", description: "Viewport size used to calculate the thumb size" },
+    { name: "backgroundColor", type: "ColorInput", default: '"#252527"', description: "Track color" },
+    { name: "foregroundColor", type: "ColorInput", default: '"#9a9ea3"', description: "Thumb color" },
+    { name: "onChange", type: "(value: number) => void", default: "-", description: "Called when the stored value changes" },
+  ]}
+/>

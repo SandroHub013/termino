@@ -1,0 +1,124 @@
+import { DemoInput } from "@/components/demos/demo-input";
+import { TerminalWindow } from "@/components/terminal";
+import { CodeBlock } from "@/components/code-block";
+import { PropsTable, KeyTable } from "@/components/docs";
+
+# Input
+
+Text input field with cursor, placeholder text, and focus states. Focus the input to receive keyboard input.
+
+<TerminalWindow title="components/input — click & type" right={<span className="text-term-green text-[11px]">live</span>}>
+  <DemoInput />
+</TerminalWindow>
+
+## Renderable API
+
+<CodeBlock
+  title="renderable"
+  code={`import { InputRenderable, InputRenderableEvents, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+const input = new InputRenderable(renderer, {
+  id: "name-input",
+  width: 25,
+  placeholder: "Enter your name...",
+})
+
+input.on(InputRenderableEvents.CHANGE, (value) => {
+  console.log("Input value:", value)
+})
+
+input.focus()
+renderer.root.add(input)`}
+/>
+
+## Construct API
+
+<CodeBlock
+  title="construct"
+  code={`import { Input, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+const input = Input({
+  placeholder: "Enter your name...",
+  width: 25,
+})
+
+input.focus()
+renderer.root.add(input)`}
+/>
+
+## Focus states
+
+The CHANGE event is emitted after text insertion and deletion operations, and when assigning a different `value`. The listener receives the current value.
+
+## Password fields
+
+Style an input as a password field with a masked value:
+
+<CodeBlock
+  code={`const passwordInput = Input({
+  id: "password-input",
+  width: 20,
+  placeholder: "••••••••",
+  backgroundColor: "#222",
+  focusedBackgroundColor: "#333",
+  textColor: "#FFF",
+  cursorColor: "#0F0",
+})
+
+const mask = (value: string) => "•".repeat(value.length)
+
+// Hook into change events to render the masked value
+passwordInput.on("change", (value) => {
+  console.log("typed:", value)
+})`}
+/>
+
+## Tab navigation
+
+Add tab navigation between multiple inputs:
+
+<CodeBlock
+  code={`const inputs = [usernameInput, passwordInput]
+let focusIndex = 0
+
+renderer.keyInput.on("keypress", (key) => {
+  if (key.name === "tab") {
+    focusIndex = (focusIndex + 1) % inputs.length
+    inputs[focusIndex].focus()
+  }
+})`}
+/>
+
+## Key bindings
+
+<KeyTable
+  keys={[
+    ["Tab", "Move focus to next input"],
+    ["Shift+Tab", "Move focus to previous input"],
+    ["Backspace", "Delete previous character"],
+    ["Enter", "Submit (respects minLength)"],
+    ["Home / End", "Jump to start / end"],
+    ["Ctrl+U", "Clear input"],
+  ]}
+/>
+
+## Properties
+
+<PropsTable
+  props={[
+    { name: "width", type: 'number | "auto" | "{n}%"', default: '"auto"', description: "Input field width" },
+    { name: "value", type: "string", default: '""', description: "Initial text value" },
+    { name: "placeholder", type: "string", default: '""', description: "Placeholder text when empty" },
+    { name: "minLength", type: "number", default: "0", description: "Minimum UTF-16 length required for submit" },
+    { name: "maxLength", type: "number", default: "1000", description: "Maximum UTF-16 length" },
+    { name: "backgroundColor", type: "string | RGBA", default: "transparent", description: "Background when unfocused" },
+    { name: "focusedBackgroundColor", type: "string | RGBA", default: "transparent", description: "Background when focused" },
+    { name: "textColor", type: "string | RGBA", default: '"#FFFFFF"', description: "Text color" },
+    { name: "cursorColor", type: "string | RGBA", default: '"#FFFFFF"', description: "Cursor color" },
+    { name: "position", type: '"relative" | "absolute"', default: '"relative"', description: "Effective positioning mode" },
+  ]}
+/>

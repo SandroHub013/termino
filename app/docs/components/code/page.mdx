@@ -1,0 +1,168 @@
+import { DemoCode } from "@/components/demos/demo-code";
+import { TerminalWindow } from "@/components/terminal";
+import { CodeBlock } from "@/components/code-block";
+import { PropsTable } from "@/components/docs";
+
+# Code
+
+Displays syntax-highlighted code using Tree-sitter. Supports many languages with accurate, fast highlighting.
+
+<TerminalWindow title="components/code" right={<span className="text-term-green text-[11px]">live</span>}>
+  <DemoCode />
+</TerminalWindow>
+
+## Renderable API
+
+<CodeBlock
+  title="renderable"
+  code={`import { CodeRenderable, createCliRenderer, SyntaxStyle, RGBA } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+const syntaxStyle = SyntaxStyle.fromStyles({
+  keyword: { fg: RGBA.fromHex("#FF7B72"), bold: true },
+  string: { fg: RGBA.fromHex("#A5D6FF") },
+  comment: { fg: RGBA.fromHex("#8B949E"), italic: true },
+  number: { fg: RGBA.fromHex("#79C0FF") },
+  function: { fg: RGBA.fromHex("#D2A8FF") },
+  default: { fg: RGBA.fromHex("#E6EDF3") },
+})
+
+const code = new CodeRenderable(renderer, {
+  id: "code",
+  content: \`function hello() {
+  // This is a comment
+  const message = "Hello, world!"
+  return message
+}\`,
+  filetype: "javascript",
+  syntaxStyle,
+  width: 50,
+  height: 10,
+})
+
+renderer.root.add(code)`}
+/>
+
+## Construct API
+
+<CodeBlock
+  title="construct"
+  code={`import { Code, Box, createCliRenderer, SyntaxStyle, RGBA } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+const syntaxStyle = SyntaxStyle.fromStyles({
+  keyword: { fg: RGBA.fromHex("#FF7B72"), bold: true },
+  string: { fg: RGBA.fromHex("#A5D6FF") },
+  default: { fg: RGBA.fromHex("#E6EDF3") },
+})
+
+renderer.root.add(
+  Box(
+    { border: true, width: 50, height: 10 },
+    Code({
+      content: 'const x = "hello"',
+      filetype: "javascript",
+      syntaxStyle,
+    }),
+  ),
+)`}
+/>
+
+## Custom syntax styles
+
+Use `SyntaxStyle.fromStyles()` to define colors and attributes per token, with dot-prefixed scope names for granularity:
+
+<CodeBlock
+  code={`const syntaxStyle = SyntaxStyle.fromStyles({
+  keyword: { fg: RGBA.fromHex("#FF7B72"), bold: true },
+  "keyword.import": { fg: RGBA.fromHex("#FF7B72"), bold: true },
+
+  string: { fg: RGBA.fromHex("#A5D6FF") },
+  comment: { fg: RGBA.fromHex("#8B949E"), italic: true },
+  number: { fg: RGBA.fromHex("#79C0FF") },
+  boolean: { fg: RGBA.fromHex("#79C0FF") },
+
+  function: { fg: RGBA.fromHex("#D2A8FF") },
+  "function.call": { fg: RGBA.fromHex("#D2A8FF") },
+  type: { fg: RGBA.fromHex("#FFA657") },
+  constructor: { fg: RGBA.fromHex("#FFA657") },
+
+  variable: { fg: RGBA.fromHex("#E6EDF3") },
+  property: { fg: RGBA.fromHex("#79C0FF") },
+  operator: { fg: RGBA.fromHex("#FF7B72") },
+  punctuation: { fg: RGBA.fromHex("#F0F6FC") },
+
+  default: { fg: RGBA.fromHex("#E6EDF3") },
+})`}
+/>
+
+Each style definition supports `fg`, `bg`, `bold`, `italic`, `underline`, and `dim`.
+
+## Supported languages
+
+- **TypeScript / JavaScript** — built-in grammar
+- **Markdown** — built-in grammar (with `markup.*` style scopes)
+- **Zig** — built-in grammar
+- Any language with a Tree-sitter grammar — pass a custom `treeSitterClient`
+
+## Streaming mode
+
+Enable for incremental content like LLM output:
+
+<CodeBlock
+  code={`const code = new CodeRenderable(renderer, {
+  id: "streaming-code",
+  content: "",
+  filetype: "typescript",
+  syntaxStyle,
+  streaming: true,
+})
+
+code.content += "const x = 1\\n"
+code.content += "const y = 2\\n"`}
+/>
+
+Streaming mode keeps the previous rendered buffer visible while a new highlight completes; each highlight still processes the complete current content.
+
+## Line numbers
+
+Pair with `LineNumberRenderable` inside a ScrollBox:
+
+<CodeBlock
+  code={`const lineNumbers = new LineNumberRenderable(renderer, {
+  id: "code-with-lines",
+  target: code,
+  minWidth: 3,
+  paddingRight: 1,
+  fg: "#6b7280",
+  bg: "#161b22",
+  width: "100%",
+})
+
+const scrollbox = new ScrollBoxRenderable(renderer, {
+  id: "scrollbox",
+  width: 60,
+  height: 20,
+})
+scrollbox.add(lineNumbers)
+renderer.root.add(scrollbox)`}
+/>
+
+## Properties
+
+<PropsTable
+  props={[
+    { name: "content", type: "string", default: '""', description: "Source code to display" },
+    { name: "filetype", type: "string", default: "-", description: "Language for syntax highlighting" },
+    { name: "syntaxStyle", type: "SyntaxStyle", default: "required", description: "Syntax highlighting theme" },
+    { name: "streaming", type: "boolean", default: "false", description: "Preserve intermediate rendering during updates" },
+    { name: "conceal", type: "boolean", default: "true", description: "Hide concealed syntax elements (e.g. markdown formatting)" },
+    { name: "drawUnstyledText", type: "boolean", default: "true", description: "Show unstyled text while highlighting" },
+    { name: "treeSitterClient", type: "TreeSitterClient", default: "-", description: "Custom Tree-sitter client instance" },
+    { name: "selectable", type: "boolean", default: "true", description: "Whether text selection is enabled" },
+    { name: "selectionBg / selectionFg", type: "string | RGBA", default: "-", description: "Selection colors" },
+    { name: "wrapMode", type: '"none" | "char" | "word"', default: '"word"', description: "Text wrapping" },
+  ]}
+/>

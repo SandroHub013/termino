@@ -1,0 +1,131 @@
+import { DemoSelect } from "@/components/demos/demo-select";
+import { TerminalWindow } from "@/components/terminal";
+import { CodeBlock } from "@/components/code-block";
+import { PropsTable, KeyTable } from "@/components/docs";
+
+# Select
+
+A vertical list for choosing from multiple options. Focus the select to enable keyboard input.
+
+<TerminalWindow title="components/select — focus, ↑↓, enter" right={<span className="text-term-green text-[11px]">live</span>}>
+  <DemoSelect />
+</TerminalWindow>
+
+## Renderable API
+
+<CodeBlock
+  title="renderable"
+  code={`import { SelectRenderable, SelectRenderableEvents, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+const menu = new SelectRenderable(renderer, {
+  id: "menu",
+  width: 30,
+  height: 8,
+  options: [
+    { name: "New File", description: "Create a new file" },
+    { name: "Open File", description: "Open an existing file" },
+    { name: "Save", description: "Save current file" },
+    { name: "Exit", description: "Exit the application" },
+  ],
+})
+
+menu.on(SelectRenderableEvents.ITEM_SELECTED, (index, option) => {
+  console.log("Selected:", option.name)
+})
+
+menu.focus()
+renderer.root.add(menu)`}
+/>
+
+## Construct API
+
+<CodeBlock
+  title="construct"
+  code={`import { Select, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+const menu = Select({
+  width: 30,
+  height: 8,
+  options: [
+    { name: "Option 1", description: "First option" },
+    { name: "Option 2", description: "Second option" },
+    { name: "Option 3", description: "Third option" },
+  ],
+})
+
+menu.focus()
+renderer.root.add(menu)`}
+/>
+
+## Keyboard navigation
+
+When focused, the select responds to these keys:
+
+<KeyTable
+  keys={[
+    ["↑ / k", "Move selection up"],
+    ["↓ / j", "Move selection down"],
+    ["Shift+↑ / ↓", "Fast scroll (5 items)"],
+    ["Enter", "Select current item"],
+  ]}
+/>
+
+## Events
+
+- **ITEM_SELECTED** — fires when the user presses Enter on an option. Receives `(index: number, option: SelectOption)`.
+- **SELECTION_CHANGED** — fires when the highlighted option changes. Receives `(index: number, option: SelectOption)`.
+
+## Option structure
+
+<CodeBlock
+  code={`interface SelectOption {
+  name: string        // Display text
+  description: string // Displays below the name
+  value?: string      // Optional value
+}`}
+/>
+
+Separator rows: use `{ name: "---", description: "" }` for a visual-only separator.
+
+## Programmatic control
+
+<CodeBlock
+  code={`menu.getSelectedIndex()       // current selection index
+menu.getSelectedOption()       // currently selected option
+menu.setSelectedIndex(2)       // set selection programmatically
+menu.moveUp()                  // navigate programmatically
+menu.moveDown(3)               // move down multiple items
+menu.selectCurrent()           // trigger selection of current item
+
+menu.options = [
+  { name: "New Option 1", description: "First" },
+  { name: "New Option 2", description: "Second" },
+]`}
+/>
+
+## Properties
+
+<PropsTable
+  props={[
+    { name: "width", type: "number", default: "-", description: "Component width" },
+    { name: "height", type: "number", default: "-", description: "Component height" },
+    { name: "options", type: "SelectOption[]", default: "[]", description: "Available options" },
+    { name: "selectedIndex", type: "number", default: "0", description: "Initially selected index" },
+    { name: "backgroundColor", type: "string | RGBA", default: "transparent", description: "Background color" },
+    { name: "textColor", type: "string | RGBA", default: '"#FFFFFF"', description: "Normal text color" },
+    { name: "focusedBackgroundColor", type: "string | RGBA", default: '"#1a1a1a"', description: "Background when focused" },
+    { name: "selectedBackgroundColor", type: "string | RGBA", default: '"#334455"', description: "Selected item background" },
+    { name: "selectedTextColor", type: "string | RGBA", default: '"#FFFF00"', description: "Selected item text color" },
+    { name: "descriptionColor", type: "string | RGBA", default: '"#888888"', description: "Description text color" },
+    { name: "showDescription", type: "boolean", default: "true", description: "Show option descriptions" },
+    { name: "showScrollIndicator", type: "boolean", default: "false", description: "Show scroll position indicator" },
+    { name: "showSelectionIndicator", type: "boolean", default: "true", description: "Show selection marker and gutter" },
+    { name: "wrapSelection", type: "boolean", default: "false", description: "Wrap selection at list boundaries" },
+    { name: "itemSpacing", type: "number", default: "0", description: "Spacing between items" },
+    { name: "fastScrollStep", type: "number", default: "5", description: "Items to skip with Shift+Up/Down" },
+  ]}
+/>

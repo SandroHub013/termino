@@ -1,0 +1,89 @@
+import { DemoDiff } from "@/components/demos/demo-diff";
+import { TerminalWindow } from "@/components/terminal";
+import { CodeBlock } from "@/components/code-block";
+import { PropsTable } from "@/components/docs";
+
+# Diff
+
+Render unified or split diffs with syntax highlighting and optional line numbers.
+
+<TerminalWindow title="components/diff" right={<span className="text-term-green text-[11px]">live</span>}>
+  <DemoDiff />
+</TerminalWindow>
+
+## Basic usage
+
+Construct API is not available yet — use `DiffRenderable` directly:
+
+<CodeBlock
+  title="renderable"
+  code={`import { DiffRenderable, SyntaxStyle, RGBA, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+const syntaxStyle = SyntaxStyle.fromStyles({
+  default: { fg: RGBA.fromHex("#E6EDF3") },
+  string: { fg: RGBA.fromHex("#A5D6FF") },
+  keyword: { fg: RGBA.fromHex("#FF7B72"), bold: true },
+})
+
+const diff = new DiffRenderable(renderer, {
+  id: "diff",
+  width: "100%",
+  height: 16,
+  diff: \`diff --git a/app.ts b/app.ts
+index 1111111..2222222 100644
+--- a/app.ts
++++ b/app.ts
+@@ -1,3 +1,3 @@
+-const a = 1
++const a = 2
+\`,
+  view: "split",
+  filetype: "typescript",
+  syntaxStyle,
+  showLineNumbers: true,
+})
+
+renderer.root.add(diff)`}
+/>
+
+## Split view scroll sync
+
+Link the vertical scroll of both panes in split view. Scrolling one pane moves the other:
+
+<CodeBlock
+  code={`const diff = new DiffRenderable(renderer, {
+  id: "diff",
+  view: "split",
+  syncScroll: true,
+  diff: patch,
+  syntaxStyle,
+})
+
+// Toggle at runtime
+diff.syncScroll = false`}
+/>
+
+Scroll sync is a no-op in the unified view.
+
+## Properties
+
+<PropsTable
+  props={[
+    { name: "diff", type: "string", default: '""', description: "Unified diff string" },
+    { name: "view", type: '"unified" | "split"', default: '"unified"', description: "Layout style" },
+    { name: "syncScroll", type: "boolean", default: "false", description: "Link vertical scroll in split view" },
+    { name: "filetype", type: "string", default: "-", description: "Syntax highlighting language" },
+    { name: "syntaxStyle", type: "SyntaxStyle", default: "-", description: "Syntax style for code" },
+    { name: "wrapMode", type: '"word" | "char" | "none"', default: "-", description: "Code wrapping mode" },
+    { name: "conceal", type: "boolean", default: "false", description: "Conceal markup when highlighting" },
+    { name: "showLineNumbers", type: "boolean", default: "true", description: "Show line numbers" },
+    { name: "lineNumberFg", type: "string | RGBA", default: '"#888888"', description: "Line number text color" },
+    { name: "addedBg", type: "string | RGBA", default: '"#1a4d1a"', description: "Background for added lines" },
+    { name: "removedBg", type: "string | RGBA", default: '"#4d1a1a"', description: "Background for removed lines" },
+    { name: "contextBg", type: "string | RGBA", default: "transparent", description: "Background for context lines" },
+    { name: "addedSignColor", type: "string | RGBA", default: '"#22c55e"', description: "Sign color for added lines" },
+    { name: "removedSignColor", type: "string | RGBA", default: '"#ef4444"', description: "Sign color for removed lines" },
+  ]}
+/>
