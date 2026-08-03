@@ -2,6 +2,7 @@ import { createElement as h } from "react";
 import { useMemo, useState } from "react";
 import { useKeyboard } from "@opentui/react";
 import { Canvas } from "./canvas";
+import { cellsWidth } from "./chart";
 import { NEO, neoPanel, type NeoColors } from "./neo";
 
 export interface ApprovalPromptProps {
@@ -64,6 +65,6 @@ export function ApprovalPrompt({
   }, [title, message, sel, color, colors]);
 
   const panel = neoPanel(rows, c);
-  const width = panel[0].length;
+  const width = cellsWidth(panel[0]);
   return h("box", { flexDirection: "column", gap: 0, width }, h(Canvas, { rows: panel, width }));
 }

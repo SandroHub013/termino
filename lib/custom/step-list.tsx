@@ -1,6 +1,7 @@
 import { createElement as h } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { Canvas } from "./canvas";
+import { cellsWidth } from "./chart";
 import { NEO, SPIN, neoPanel, type NeoColors } from "./neo";
 
 export type StepState = "pending" | "running" | "done" | "error" | "skipped";
@@ -58,7 +59,7 @@ export function StepList({
         { ch: ` ${s.label}`, fg: s.state === "pending" ? c.dim : c.text },
       ];
       if (s.detail) {
-        let room = 50 - row.reduce((n, cell) => n + cell.ch.length, 0) - s.detail.length - 2;
+        let room = 50 - cellsWidth(row) - s.detail.length - 2;
         while (room > 0) {
           row.push({ ch: " ", fg: c.text });
           room--;
@@ -72,6 +73,6 @@ export function StepList({
   }, [title, steps, frame, color, colors, running]);
 
   const panel = neoPanel(rows, c);
-  const width = panel[0].length;
+  const width = cellsWidth(panel[0]);
   return h("box", { flexDirection: "column", gap: 0, width }, h(Canvas, { rows: panel, width }));
 }

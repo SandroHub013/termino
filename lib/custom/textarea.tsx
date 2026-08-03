@@ -109,10 +109,18 @@ export function Textarea({
       setPos((p) => ({ row: p.row, col: 0 }));
     } else if (key.name === "end") {
       setPos((p) => ({ row: p.row, col: (lines[p.row] ?? "").length }));
-    } else if (key.name === undefined && key.sequence && key.sequence.length === 1) {
-      insert(key.sequence);
     } else if (key.name === "space") {
       insert(" ");
+    } else if (
+      key.sequence &&
+      key.sequence.length === 1 &&
+      key.sequence >= " " &&
+      !key.ctrl &&
+      !key.meta
+    ) {
+      // Printable characters arrive with key.name set to the character itself
+      // (e.g. "q"), so match on the sequence instead of key.name === undefined.
+      insert(key.sequence);
     }
   };
 
@@ -145,15 +153,20 @@ export function Textarea({
           { fg: isPlaceholder ? placeholderFg : fg },
           before,
         ),
-        showCursor &&
-          h(
-            "text",
-            {
-              fg: at ? cursorBg : cursorFg,
-              bg: at ? cursorBg : undefined,
-            },
-            at || "█",
-          ),
+        showCursor
+          ? h(
+              "text",
+              {
+                fg: at ? cursorBg : cursorFg,
+                bg: at ? cursorBg : undefined,
+              },
+              at || "█",
+            )
+          : h(
+              "text",
+              { fg: isPlaceholder ? placeholderFg : fg },
+              at,
+            ),
         h(
           "text",
           { fg: isPlaceholder ? placeholderFg : fg },

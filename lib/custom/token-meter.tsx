@@ -1,7 +1,7 @@
 import { createElement as h } from "react";
 import { useMemo } from "react";
 import { Canvas } from "./canvas";
-import type { CursorCell } from "./chart";
+import { cellsWidth, strWidth, type CursorCell } from "./chart";
 import { NEO, neoFill, neoPanel, type NeoColors } from "./neo";
 
 export interface TokenMeterProps {
@@ -49,10 +49,11 @@ export function TokenMeter({
       { ch: ` / ${fmt(total)}`, fg: c.dim },
     ];
     const pct = `${Math.round(ratio * 100)}%`;
-    while (labelRow.reduce((n, s) => n + s.ch.length, 0) < width - 4 - pct.length) {
+    const pctCell = ` ${pct}`;
+    while (cellsWidth(labelRow) < width + 2 - strWidth(pctCell)) {
       labelRow.push({ ch: " ", fg: c.text });
     }
-    labelRow.push({ ch: ` ${pct}`, fg: fillColor });
+    labelRow.push({ ch: pctCell, fg: fillColor });
 
     const fill = neoFill(used, total, width, fillColor, c);
     const body: CursorCell[][] = [labelRow];
@@ -81,6 +82,6 @@ export function TokenMeter({
   }, [used, total, input, output, cached, label, width, fillColor, color, colors]);
 
   const panel = neoPanel(rows, c);
-  const widthFix = panel[0].length;
+  const widthFix = cellsWidth(panel[0]);
   return h("box", { flexDirection: "column", gap: 0, width: widthFix }, h(Canvas, { rows: panel, width: widthFix }));
 }

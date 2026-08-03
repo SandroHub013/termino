@@ -57,6 +57,12 @@ Open the gallery at `/docs/custom`. Flip themes with the glyphs in the header ( 
 ## Run a single termino example in a real terminal
 
 ```bash
+# Interactive TUI Component Showcase (All components & tabs)
+npm run demo:tui
+# or npx tsx examples/custom/cli-showcase.tsx
+# or bun examples/custom/cli-showcase.tsx
+
+# Single component demo
 bun examples/custom/tree-view.tsx
 ```
 
