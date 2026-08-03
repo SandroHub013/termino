@@ -2,7 +2,7 @@ import { createElement as h } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useKeyboard } from "@opentui/react";
 import { Canvas } from "./canvas";
-import type { CursorCell } from "./chart";
+import { cellsWidth, type CursorCell } from "./chart";
 import { NEO, SPIN, neoPanel, type NeoColors } from "./neo";
 
 export type ToolState = "pending" | "running" | "done" | "error";
@@ -73,7 +73,7 @@ export function ToolCall({
       body.push({ ch: `  ${args}`, fg: c.dim });
     }
     const right = durationMs !== undefined ? `${durationMs}ms` : "";
-    let room = 48 - body.reduce((n, s) => n + s.ch.length, 0) - (right ? right.length + 2 : 0);
+    let room = 48 - cellsWidth(body) - (right ? right.length + 2 : 0);
     while (room > 0) {
       body.push({ ch: " ", fg: c.text });
       room--;
@@ -92,6 +92,6 @@ export function ToolCall({
   }, [name, args, state, durationMs, output, expanded, frame, color, colors, running]);
 
   const panel = neoPanel(rows, c);
-  const width = panel[0].length;
+  const width = cellsWidth(panel[0]);
   return h("box", { flexDirection: "column", gap: 0, width }, h(Canvas, { rows: panel, width }));
 }
