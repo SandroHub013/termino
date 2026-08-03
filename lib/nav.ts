@@ -230,5 +230,41 @@ export const customSection: NavSection = {
       description: "Centered shrinking bars with gradient and percent",
       accent: "text-term-red",
     },
+    {
+      slug: "agent-spinner",
+      name: "AgentSpinner",
+      description: "Neomorphic status line with spinner and elapsed timer",
+      accent: "text-term-green",
+    },
+    {
+      slug: "status-bar",
+      name: "StatusBar",
+      description: "Agent bottom bar: mode, model, task, clock, tokens",
+      accent: "text-term-blue",
+    },
+    {
+      slug: "tool-call",
+      name: "ToolCall",
+      description: "Invocation card with state glyph, args and duration",
+      accent: "text-term-magenta",
+    },
+    {
+      slug: "approval-prompt",
+      name: "ApprovalPrompt",
+      description: "Permission dialog with keyboard yes/no selection",
+      accent: "text-term-yellow",
+    },
+    {
+      slug: "token-meter",
+      name: "TokenMeter",
+      description: "Context window usage with zone colors and io stats",
+      accent: "text-term-red",
+    },
+    {
+      slug: "step-list",
+      name: "StepList",
+      description: "Session plan tracker: pending → running → done",
+      accent: "text-term-cyan",
+    },
   ],
 };
