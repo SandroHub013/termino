@@ -39,6 +39,12 @@ export const CATEGORIES: CustomCategory[] = [
   },
 ];
 
+export interface CustomVariant {
+  id: string;
+  label: string;
+  blurb: string;
+}
+
 export interface CustomMeta {
   slug: string;
   name: string;
@@ -51,6 +57,7 @@ export interface CustomMeta {
   keymap: [string, string][];
   props: { name: string; type: string; default: string; description: string }[];
   notes: string[];
+  variants?: CustomVariant[];
 }
 
 export const customComponents: CustomMeta[] = [
@@ -137,10 +144,17 @@ export const customComponents: CustomMeta[] = [
       { name: "trackColor", type: "string", default: '"#2f3449"', description: "Track color" },
       { name: "percentColor", type: "string", default: '"#565f89"', description: "Percentage text color" },
       { name: "showPercent", type: "boolean", default: "true", description: "Show the percentage value" },
+      { name: "variant", type: '"blocks" | "line" | "dots" | "gradient"', default: '"blocks"', description: "Bar rendering style" },
     ],
     notes: [
       "Fill is a nested `<box>` with computed width — the same pattern the system-monitor example uses.",
       "Animate by feeding it state updated from useTimeline's onUpdate, or plain setInterval.",
+    ],
+    variants: [
+      { id: "blocks", label: "blocks", blurb: "Solid background-color fill (default)" },
+      { id: "line", label: "line", blurb: "Box-drawing ━/─ track glyphs" },
+      { id: "dots", label: "dots", blurb: "Dot-matrix ●/· style" },
+      { id: "gradient", label: "gradient", blurb: "Fill lerps toward white across the track" },
     ],
   },
   {

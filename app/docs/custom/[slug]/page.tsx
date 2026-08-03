@@ -32,7 +32,7 @@ import { DemoApprovalPrompt } from "@/components/demos/custom/demo-approval-prom
 import { DemoTokenMeter } from "@/components/demos/custom/demo-token-meter";
 import { DemoStepList } from "@/components/demos/custom/demo-step-list";
 
-const DEMOS = {
+const DEMOS: Record<string, React.ComponentType<{ variant?: string }>> = {
   LineChart: DemoLineChart,
   AreaChart: DemoAreaChart,
   ProgressBar: DemoProgressBar,
@@ -59,7 +59,7 @@ const DEMOS = {
   ApprovalPrompt: DemoApprovalPrompt,
   TokenMeter: DemoTokenMeter,
   StepList: DemoStepList,
-} as const;
+};
 
 export function generateStaticParams() {
   return customComponents.map((c) => ({ slug: c.slug }));
@@ -122,6 +122,28 @@ export default async function CustomPage({
       <TerminalWindow title={`custom/${slug}`} right={<span className="text-term-green text-[11px]">live</span>}>
         <Demo />
       </TerminalWindow>
+
+      {meta.variants && meta.variants.length > 0 && (
+        <>
+          <h2 className="text-lg font-bold text-ink-050 mt-10 mb-3 flex items-center gap-2">
+            <span className="text-term-cyan select-none">##</span>
+            Variants
+          </h2>
+          <div className="space-y-6">
+            {meta.variants.map((v) => (
+              <div key={v.id}>
+                <div className="text-[12.5px] text-ink-300 mb-2">
+                  <span className="text-term-yellow font-medium">{v.label}</span>
+                  <span className="text-ink-500"> · {v.blurb}</span>
+                </div>
+                <TerminalWindow title={`custom/${slug} · ${v.id}`}>
+                  <Demo variant={v.id} />
+                </TerminalWindow>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       <h2 className="text-lg font-bold text-ink-050 mt-10 mb-3 flex items-center gap-2">
         <span className="text-term-cyan select-none">##</span>
