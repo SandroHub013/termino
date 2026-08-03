@@ -12,6 +12,7 @@ const GROUP_LABEL: Record<string, string> = {
   controls: "controls",
   layout: "layout",
   display: "display",
+  agents: "agents",
 };
 
 export default function CustomIndex() {

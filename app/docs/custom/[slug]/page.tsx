@@ -25,6 +25,12 @@ import { DemoHeatmap } from "@/components/demos/custom/demo-heatmap";
 import { DemoCandlestick } from "@/components/demos/custom/demo-candlestick";
 import { DemoScatter } from "@/components/demos/custom/demo-scatter";
 import { DemoFunnel } from "@/components/demos/custom/demo-funnel";
+import { DemoAgentSpinner } from "@/components/demos/custom/demo-agent-spinner";
+import { DemoStatusBar } from "@/components/demos/custom/demo-status-bar";
+import { DemoToolCall } from "@/components/demos/custom/demo-tool-call";
+import { DemoApprovalPrompt } from "@/components/demos/custom/demo-approval-prompt";
+import { DemoTokenMeter } from "@/components/demos/custom/demo-token-meter";
+import { DemoStepList } from "@/components/demos/custom/demo-step-list";
 
 const DEMOS = {
   LineChart: DemoLineChart,
@@ -47,6 +53,12 @@ const DEMOS = {
   Candlestick: DemoCandlestick,
   Scatter: DemoScatter,
   Funnel: DemoFunnel,
+  AgentSpinner: DemoAgentSpinner,
+  StatusBar: DemoStatusBar,
+  ToolCall: DemoToolCall,
+  ApprovalPrompt: DemoApprovalPrompt,
+  TokenMeter: DemoTokenMeter,
+  StepList: DemoStepList,
 } as const;
 
 export function generateStaticParams() {
