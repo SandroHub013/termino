@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { customComponents } from "@/lib/custom/meta";
+import { CATEGORIES, customComponents } from "@/lib/custom/meta";
 import { ComponentGallery } from "@/components/gallery";
 import { CodeBlock } from "@/components/code-block";
 
@@ -7,19 +7,13 @@ export const metadata = {
   title: "Custom components — Termino",
 };
 
-const GROUP_LABEL: Record<string, string> = {
-  charts: "charts",
-  controls: "controls",
-  layout: "layout",
-  display: "display",
-  agents: "agents",
-};
-
 export default function CustomIndex() {
-  const groups = Object.entries(GROUP_LABEL).map(([key, label]) => ({
-    label,
+  const groups = CATEGORIES.map((cat) => ({
+    label: cat.label,
+    id: cat.id,
+    blurb: cat.blurb,
     items: customComponents
-      .filter((c) => c.group === key)
+      .filter((c) => c.group === cat.id)
       .map((c) => ({
         slug: c.slug,
         name: c.name,
@@ -49,16 +43,17 @@ export default function CustomIndex() {
           <code className="text-term-green">examples/custom/</code>.
         </p>
         <div className="flex flex-wrap gap-2 mt-4">
-          {Object.entries(GROUP_LABEL).map(([key, label]) => (
-            <span
-              key={key}
-              className="t-chip text-[11px] px-2 py-1 rounded-sm border border-ink-600 text-ink-300"
+          {CATEGORIES.map((cat) => (
+            <a
+              key={cat.id}
+              href={`#${cat.id}`}
+              className="t-chip text-[11px] px-2 py-1 rounded-sm border border-ink-600 text-ink-300 hover:text-ink-050 hover:border-ink-400 transition-colors"
             >
-              {label}{" "}
+              {cat.label}{" "}
               <span className="text-ink-500">
-                {customComponents.filter((c) => c.group === key).length}
+                {customComponents.filter((c) => c.group === cat.id).length}
               </span>
-            </span>
+            </a>
           ))}
         </div>
       </div>

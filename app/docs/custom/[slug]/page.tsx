@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { readFileSync } from "fs";
 import path from "path";
-import { customComponents } from "@/lib/custom/meta";
+import { customComponents, orderedCustomComponents } from "@/lib/custom/meta";
 import { TerminalWindow } from "@/components/terminal";
 import { CodeBlock } from "@/components/code-block";
 import { PropsTable, KeyTable } from "@/components/docs";
@@ -86,9 +86,9 @@ export default async function CustomPage({
   const meta = customComponents.find((c) => c.slug === slug);
   if (!meta) notFound();
 
-  const idx = customComponents.findIndex((c) => c.slug === slug);
-  const prev = idx > 0 ? customComponents[idx - 1] : null;
-  const next = idx < customComponents.length - 1 ? customComponents[idx + 1] : null;
+  const idx = orderedCustomComponents.findIndex((c) => c.slug === slug);
+  const prev = idx > 0 ? orderedCustomComponents[idx - 1] : null;
+  const next = idx < orderedCustomComponents.length - 1 ? orderedCustomComponents[idx + 1] : null;
 
   const sourcePath = path.join(process.cwd(), "lib", "custom", meta.source);
   let source = "";
