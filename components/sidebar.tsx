@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { customSection, sections, type NavSection } from "@/lib/nav";
+import { customSections, sections, type NavSection } from "@/lib/nav";
 
-const allSections: NavSection[] = [...sections, customSection];
+const allSections: NavSection[] = [...sections, ...customSections];
 
 export function Sidebar() {
   const pathname = usePathname();
