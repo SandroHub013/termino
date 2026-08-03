@@ -1,0 +1,150 @@
+import { DemoBox } from "@/components/demos/demo-box";
+import { TerminalWindow } from "@/components/terminal";
+import { CodeBlock } from "@/components/code-block";
+import { PropsTable } from "@/components/docs";
+
+# Box
+
+A container component with borders, background colors, and layout capabilities. Use it to create panels, frames, and organized sections.
+
+<TerminalWindow title="components/box" right={<span className="text-term-green text-[11px]">live</span>}>
+  <DemoBox />
+</TerminalWindow>
+
+## Renderable API
+
+<CodeBlock
+  title="renderable"
+  code={`import { BoxRenderable, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+const panel = new BoxRenderable(renderer, {
+  id: "panel",
+  width: 30,
+  height: 10,
+  backgroundColor: "#333366",
+  borderStyle: "double",
+  borderColor: "#FFFFFF",
+})
+
+renderer.root.add(panel)`}
+/>
+
+## Construct API
+
+<CodeBlock
+  title="construct"
+  code={`import { Box, Text, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+renderer.root.add(
+  Box(
+    {
+      width: 30,
+      height: 10,
+      backgroundColor: "#333366",
+      borderStyle: "rounded",
+    },
+    Text({ content: "Inside the box!" }),
+  ),
+)`}
+/>
+
+## Border styles
+
+<CodeBlock
+  code={`{ border: false }                  // no border
+{ border: true }                   // simple border
+{ borderStyle: "single" }          // ┌─┐ │ └─┘
+{ borderStyle: "double" }          // ╔═╗ ║ ╚═╝
+{ borderStyle: "rounded" }         // ╭─╮ │ ╰─╯
+{ borderStyle: "heavy" }           // ┏━┓ ┃ ┗━┛`}
+/>
+
+## Titles
+
+Add a title and bottom title to the box border:
+
+<CodeBlock
+  code={`const panel = new BoxRenderable(renderer, {
+  id: "settings",
+  width: 40,
+  height: 15,
+  borderStyle: "rounded",
+  title: "Settings",
+  titleColor: "yellow",
+  titleAlignment: "center",
+  bottomTitle: "Footer",
+  bottomTitleAlignment: "center",
+})`}
+/>
+
+Title alignment controls placement of the title on the border:
+
+<CodeBlock
+  code={`{ titleAlignment: "left" }    // ┌─ Title ────────┐
+{ titleAlignment: "center" }  // ┌──── Title ─────┐
+{ titleAlignment: "right" }   // ┌────────── Title ┐`}
+/>
+
+## Layout container
+
+Box works as a flex container for child elements:
+
+<CodeBlock
+  code={`const container = Box(
+  {
+    flexDirection: "column",
+    justifyContent: "space-between",
+    alignItems: "stretch",
+    width: 50,
+    height: 20,
+    padding: 1,
+    gap: 1,
+  },
+  Text({ content: "Header" }),
+  Box({ flexGrow: 1, backgroundColor: "#222" }, Text({ content: "Content" })),
+  Text({ content: "Footer" }),
+)`}
+/>
+
+## Mouse events
+
+Handle mouse interactions on the box:
+
+<CodeBlock
+  code={`const button = new BoxRenderable(renderer, {
+  id: "button",
+  width: 12,
+  height: 3,
+  border: true,
+  backgroundColor: "#444",
+  onMouseDown: () => console.log("Button clicked!"),
+  onMouseOver: () => { button.backgroundColor = "#666" },
+  onMouseOut: () => { button.backgroundColor = "#444" },
+})`}
+/>
+
+## Properties
+
+<PropsTable
+  props={[
+    { name: "width", type: "number | string", default: "-", description: "Width in characters or percentage" },
+    { name: "height", type: "number | string", default: "-", description: "Height in rows or percentage" },
+    { name: "backgroundColor", type: "string | RGBA", default: "-", description: "Background fill color" },
+    { name: "border", type: "boolean", default: "false", description: "Show border" },
+    { name: "borderStyle", type: "string", default: '"single"', description: "Border style" },
+    { name: "borderColor", type: "string | RGBA", default: "-", description: "Border color" },
+    { name: "title", type: "string", default: "-", description: "Title text in border" },
+    { name: "titleColor", type: "string | RGBA", default: "-", description: "Color of the title text" },
+    { name: "titleAlignment", type: "string", default: '"left"', description: "Title position" },
+    { name: "bottomTitle", type: "string", default: "-", description: "Bottom title text" },
+    { name: "padding", type: "number", default: "0", description: "Internal padding" },
+    { name: "gap", type: "number | string", default: "-", description: "Gap between children" },
+    { name: "flexDirection", type: "string", default: '"column"', description: "Child layout direction" },
+    { name: "justifyContent", type: "string", default: '"flex-start"', description: "Main axis alignment" },
+    { name: "alignItems", type: "string", default: '"stretch"', description: "Cross axis alignment" },
+  ]}
+/>

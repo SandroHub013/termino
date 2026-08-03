@@ -1,0 +1,96 @@
+import { DemoText } from "@/components/demos/demo-text";
+import { TerminalWindow } from "@/components/terminal";
+import { CodeBlock } from "@/components/code-block";
+import { PropsTable, KeyTable } from "@/components/docs";
+
+# Text
+
+Display styled text content with support for colors, attributes, and text selection.
+
+<TerminalWindow title="components/text" right={<span className="text-term-green text-[11px]">live</span>}>
+  <DemoText />
+</TerminalWindow>
+
+## Renderable API
+
+<CodeBlock
+  title="renderable"
+  code={`import { TextRenderable, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+const title = new TextRenderable(renderer, {
+  id: "title",
+  content: "Hello, terminal!",
+  fg: "#7aa2f7",
+  attributes: TextAttributes.BOLD,
+})
+
+renderer.root.add(title)`}
+/>
+
+## Construct API
+
+<CodeBlock
+  title="construct"
+  code={`import { Text, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+renderer.root.add(
+  Text({
+    content: "Hello, terminal!",
+    fg: "#7aa2f7",
+  }),
+)`}
+/>
+
+## Text attributes
+
+Combine multiple attributes with bitwise OR:
+
+<CodeBlock
+  code={`const bold = Text({ content: "bold", attributes: TextAttributes.BOLD })
+const dim = Text({ content: "dim", attributes: TextAttributes.DIM })
+const combo = Text({
+  content: "bold + underline",
+  attributes: TextAttributes.BOLD | TextAttributes.UNDERLINE,
+})`}
+/>
+
+| Attribute | Description |
+| --- | --- |
+| `TextAttributes.BOLD` | Bold text |
+| `TextAttributes.DIM` | Dimmed text |
+| `TextAttributes.ITALIC` | Italic text |
+| `TextAttributes.UNDERLINE` | Underlined text |
+| `TextAttributes.BLINK` | Blinking text |
+| `TextAttributes.INVERSE` | Inverted colors |
+| `TextAttributes.HIDDEN` | Hidden text |
+| `TextAttributes.STRIKETHROUGH` | Strikethrough text |
+
+## Template literals for rich text
+
+Use the `` t` `` template literal to compose styled text in a single call:
+
+<CodeBlock
+  code={`import { t, bold, fg } from "@opentui/core"
+
+const status = Text({
+  content: t\`\${bold(fg("#00FFFF")("CONNECTED"))} — waiting for input\`,
+})`}
+/>
+
+## Properties
+
+<PropsTable
+  props={[
+    { name: "content", type: "string | StyledText", default: '""', description: "The text content to display" },
+    { name: "fg", type: "string | RGBA", default: "-", description: "Foreground (text) color" },
+    { name: "bg", type: "string | RGBA", default: "-", description: "Background color" },
+    { name: "attributes", type: "TextAttributes", default: "0", description: "Text styling attributes (bitwise OR)" },
+    { name: "selectable", type: "boolean", default: "true", description: "Whether text can be selected" },
+    { name: "position", type: '"relative" | "absolute"', default: '"relative"', description: "Positioning mode" },
+    { name: "left / top / right / bottom", type: 'number | "auto" | "{n}%"', default: "auto", description: "Position offsets" },
+  ]}
+/>

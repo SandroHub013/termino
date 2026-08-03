@@ -1,0 +1,132 @@
+import { DemoTabSelect } from "@/components/demos/demo-tab-select";
+import { TerminalWindow } from "@/components/terminal";
+import { CodeBlock } from "@/components/code-block";
+import { PropsTable, KeyTable } from "@/components/docs";
+
+# TabSelect
+
+Horizontal tab-based selection component with descriptions and scroll support. The component must be focused to receive keyboard input.
+
+<TerminalWindow title="components/tab-select — focus, ←→" right={<span className="text-term-green text-[11px]">live</span>}>
+  <DemoTabSelect />
+</TerminalWindow>
+
+## Renderable API
+
+<CodeBlock
+  title="renderable"
+  code={`import { TabSelectRenderable, TabSelectRenderableEvents, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+const tabs = new TabSelectRenderable(renderer, {
+  id: "tabs",
+  width: 60,
+  options: [
+    { name: "Home", description: "Dashboard and overview" },
+    { name: "Files", description: "File management" },
+    { name: "Settings", description: "Application settings" },
+  ],
+  tabWidth: 20,
+})
+
+tabs.on(TabSelectRenderableEvents.ITEM_SELECTED, (index, option) => {
+  console.log("Tab:", option.name)
+})
+
+tabs.focus()
+renderer.root.add(tabs)`}
+/>
+
+## Construct API
+
+<CodeBlock
+  title="construct"
+  code={`import { TabSelect, createCliRenderer } from "@opentui/core"
+
+const renderer = await createCliRenderer()
+
+const tabs = TabSelect({
+  width: 60,
+  tabWidth: 15,
+  options: [
+    { name: "Tab 1", description: "First tab" },
+    { name: "Tab 2", description: "Second tab" },
+    { name: "Tab 3", description: "Third tab" },
+  ],
+})
+
+tabs.focus()
+renderer.root.add(tabs)`}
+/>
+
+## Keyboard navigation
+
+When focused, the tab select responds to these keys:
+
+<KeyTable
+  keys={[
+    ["← / [", "Move to previous tab"],
+    ["→ / ]", "Move to next tab"],
+    ["Enter", "Select current tab"],
+  ]}
+/>
+
+## Tabbed interface example
+
+Swap panels when the selection changes:
+
+<CodeBlock
+  code={`const container = Box({
+  width: 60,
+  height: 20,
+  borderStyle: "rounded",
+})
+
+const tabs = TabSelect({
+  width: 60,
+  tabWidth: 20,
+  options: [
+    { name: "Home", description: "Dashboard" },
+    { name: "Files", description: "Browse files" },
+    { name: "Settings", description: "Preferences" },
+  ],
+})
+
+tabs.on("itemSelected", (index, option) => {
+  if (currentPanel) contentArea.remove(currentPanel)
+  currentPanel = panels[option.name]
+  contentArea.add(currentPanel)
+})
+
+container.add(tabs)
+container.add(contentArea)
+tabs.focus()
+renderer.root.add(container)`}
+/>
+
+## Scroll behavior
+
+When there are more tabs than fit in the width, the component automatically handles horizontal scrolling as you navigate with the keyboard. `showScrollArrows` renders indicators when tabs are clipped.
+
+## Properties
+
+<PropsTable
+  props={[
+    { name: "width", type: "number", default: "-", description: "Total component width" },
+    { name: "options", type: "TabSelectOption[]", default: "[]", description: "Available tabs" },
+    { name: "tabWidth", type: "number", default: "20", description: "Width of each tab" },
+    { name: "backgroundColor", type: "string | RGBA", default: "transparent", description: "Background color" },
+    { name: "textColor", type: "string | RGBA", default: '"#FFFFFF"', description: "Normal tab text" },
+    { name: "focusedBackgroundColor", type: "string | RGBA", default: '"#1a1a1a"', description: "Background when focused" },
+    { name: "selectedBackgroundColor", type: "string | RGBA", default: '"#334455"', description: "Selected tab background" },
+    { name: "selectedTextColor", type: "string | RGBA", default: '"#FFFF00"', description: "Selected tab text" },
+    { name: "selectedDescriptionColor", type: "string | RGBA", default: '"#CCCCCC"', description: "Description text color" },
+    { name: "showScrollArrows", type: "boolean", default: "true", description: "Show scroll indicators" },
+    { name: "showDescription", type: "boolean", default: "true", description: "Show tab descriptions" },
+    { name: "showUnderline", type: "boolean", default: "true", description: "Underline on selected tab" },
+    { name: "wrapSelection", type: "boolean", default: "false", description: "Wrap around when navigating" },
+    { name: "keyBindings", type: "TabSelectKeyBinding[]", default: "-", description: "Custom key bindings" },
+    { name: "keyAliasMap", type: "Record<string, string>", default: "-", description: "Key alias mappings" },
+  ]}
+/>

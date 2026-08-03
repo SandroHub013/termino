@@ -1,0 +1,129 @@
+import { DemoTable } from "@/components/demos/demo-table";
+import { TerminalWindow } from "@/components/terminal";
+import { CodeBlock } from "@/components/code-block";
+import { PropsTable } from "@/components/docs";
+
+# TextTable
+
+Lays out a two-dimensional array of styled text cells. Supports intrinsic or full-width columns, constrained wrapping, independent inner and outer borders, cell padding, and text selection.
+
+<TerminalWindow title="components/text-table" right={<span className="text-term-green text-[11px]">live</span>}>
+  <DemoTable />
+</TerminalWindow>
+
+TextTable currently has an imperative renderable API. It is not registered as a built-in React or Solid component.
+
+## Basic usage
+
+<CodeBlock
+  title="renderable"
+  code={`import { TextTableRenderable, bold, fg, type TextChunk, type TextTableContent } from "@opentui/core"
+
+const cell = (text: string): TextChunk[] => [{ __isChunk: true, text }]
+
+const content: TextTableContent = [
+  [[bold("Service")], [bold("Status")], [bold("Notes")]],
+  [cell("api"), [fg("#00d4aa")("OK")], cell("latency 28ms")],
+  [cell("worker"), [fg("#b8a0ff")("DEGRADED")], cell("queue depth: 124")],
+]
+
+const table = new TextTableRenderable(renderer, {
+  width: "100%",
+  wrapMode: "word",
+  columnWidthMode: "content",
+  borderStyle: "rounded",
+  content,
+})
+
+renderer.root.add(table)`}
+/>
+
+## Content
+
+Cell content is styled-text chunks. `null`, `undefined`, and missing cells render as empty text. Rows may have different lengths — the table uses the longest row's column count and fills missing cells with empty content.
+
+<CodeBlock
+  code={`type TextTableCellContent = TextChunk[] | null | undefined
+type TextTableContent = TextTableCellContent[][]`}
+/>
+
+The first row has no special behavior. Styling it as a header is a convention — TextTable has no header option.
+
+Replace data at runtime:
+
+<CodeBlock
+  code={`table.content = [
+  [[bold("Name")], [bold("State")]],
+  [cell("worker-1"), [fg("#22c55e")("ready")]],
+]`}
+/>
+
+## Column sizing
+
+- `columnWidthMode: "full"` — expand columns evenly to fill the width constraint (default)
+- `columnWidthMode: "content"` — keep the table at intrinsic width
+- `columnFitter: "proportional"` — preserve width for intrinsically wider columns (default)
+- `columnFitter: "balanced"` — keep constrained columns closer to even width
+- `wrapMode: "word" | "char"` — shrink columns and grow rows when content is wider than the constraint
+
+## Borders and spacing
+
+<CodeBlock
+  code={`// Outer border without inner cell separators
+const table = new TextTableRenderable(renderer, {
+  border: false,
+  outerBorder: true,
+  content,
+})
+
+// Gap between columns when inner vertical borders are off
+{
+  border: false,
+  columnGap: 2,
+}
+
+// Padding per cell
+{
+  cellPadding: 1,
+  cellPaddingX: 2, // override per axis
+  cellPaddingY: 1,
+}`}
+/>
+
+`showBorders: false` suppresses border glyph painting without removing the space reserved by enabled borders.
+
+## Selection
+
+Selection starts only within cell content. A vertical drag that stays in the anchor column selects that column; moving into another column switches to grid selection.
+
+<CodeBlock
+  code={`renderer.on("selection", () => {
+  console.log(table.getSelectedText())
+})
+
+table.shouldStartSelection(x, y) // is the position selectable?
+table.hasSelection()
+table.getSelection()             // first cell's { start, end } or null`}
+/>
+
+## Options
+
+<PropsTable
+  props={[
+    { name: "content", type: "TextTableContent[]", default: "-", description: "Rows of styled cell chunks" },
+    { name: "wrapMode", type: '"none" | "char" | "word"', default: '"word"', description: "Cell text wrapping behavior" },
+    { name: "columnWidthMode", type: '"content" | "full"', default: '"full"', description: "Preserve intrinsic width or fill constraint" },
+    { name: "columnFitter", type: '"proportional" | "balanced"', default: '"proportional"', description: "Width allocation when columns must shrink" },
+    { name: "cellPadding", type: "number", default: "0", description: "Padding on each side of a cell" },
+    { name: "cellPaddingX / cellPaddingY", type: "number", default: "cellPadding", description: "Per-axis padding" },
+    { name: "columnGap", type: "number", default: "0", description: "Gap between columns when inner vertical borders are off" },
+    { name: "showBorders", type: "boolean", default: "true", description: "Paint enabled border glyphs" },
+    { name: "border", type: "boolean", default: "true", description: "Enable inner row and column separators" },
+    { name: "outerBorder", type: "boolean", default: "border", description: "Enable the table boundary" },
+    { name: "borderStyle", type: '"single" | "double" | "rounded" | "heavy"', default: '"single"', description: "Border glyph set" },
+    { name: "borderColor", type: "ColorInput", default: '"#FFFFFF"', description: "Border foreground color" },
+    { name: "backgroundColor", type: "ColorInput", default: "transparent", description: "Buffered table surface background" },
+    { name: "fg / bg", type: "ColorInput", default: '"#FFFFFF" / transparent', description: "Default cell text colors" },
+    { name: "selectable", type: "boolean", default: "true", description: "Allow cell text selection" },
+  ]}
+/>
