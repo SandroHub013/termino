@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const THEMES = [
   { id: "term", glyph: "▚", name: "terminal" },
@@ -10,11 +10,14 @@ const THEMES = [
 ] as const;
 
 export function ThemeSwitcher() {
-  const [theme, setTheme] = useState<string>(() =>
-    typeof window === "undefined"
-      ? "term"
-      : document.documentElement.getAttribute("data-theme") ?? "term",
-  );
+  const [theme, setTheme] = useState("term");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTheme(document.documentElement.getAttribute("data-theme") ?? "term");
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const apply = (id: string) => {
     setTheme(id);
