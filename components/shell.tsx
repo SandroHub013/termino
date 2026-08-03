@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { Sidebar } from "./sidebar";
+import { ThemeSwitcher } from "./theme-switcher";
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-ink-700 bg-ink-950/85 backdrop-blur">
+      <header className="t-header sticky top-0 z-40 border-b border-ink-700 bg-ink-950/85 backdrop-blur">
         <div className="flex items-center gap-6 h-16 px-4 md:px-6">
           <Link
             href="/"
@@ -46,9 +47,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               github ↗
             </a>
           </nav>
-          <div className="ml-auto hidden md:flex items-center gap-2 text-[12px] text-ink-400">
-            <span className="text-term-green">●</span>
-            <span>built on @opentui/core v0.4.5</span>
+          <div className="ml-auto hidden md:flex items-center gap-3">
+            <ThemeSwitcher />
+            <div className="flex items-center gap-2 text-[12px] text-ink-400">
+              <span className="text-term-green">●</span>
+              <span className="hidden lg:inline">built on @opentui/core v0.4.5</span>
+            </div>
           </div>
         </div>
       </header>

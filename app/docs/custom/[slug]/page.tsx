@@ -155,7 +155,7 @@ export default async function CustomPage({
         {prev && (
           <Link
             href={`/docs/custom/${prev.slug}`}
-            className="group flex-1 rounded-md border border-ink-600 p-3 hover:border-ink-400 transition-colors"
+            className="t-card group flex-1 rounded-md border border-ink-600 p-3 hover:border-ink-400 transition-colors"
           >
             <div className="text-[11px] text-ink-400 group-hover:text-ink-300">← {prev.name}</div>
             <div className="text-[13px] text-ink-200 group-hover:text-ink-050 mt-0.5">
@@ -166,7 +166,7 @@ export default async function CustomPage({
         {next && (
           <Link
             href={`/docs/custom/${next.slug}`}
-            className="group flex-1 rounded-md border border-ink-600 p-3 text-right hover:border-ink-400 transition-colors"
+            className="t-card group flex-1 rounded-md border border-ink-600 p-3 text-right hover:border-ink-400 transition-colors"
           >
             <div className="text-[11px] text-ink-400 group-hover:text-ink-300">{next.name} →</div>
             <div className="text-[13px] text-ink-200 group-hover:text-ink-050 mt-0.5">

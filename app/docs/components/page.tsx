@@ -34,7 +34,7 @@ export default function ComponentsIndex() {
           {sections.map((s) => (
             <span
               key={s.label}
-              className="text-[11px] px-2 py-1 rounded-sm border border-ink-600 text-ink-300"
+              className="t-chip text-[11px] px-2 py-1 rounded-sm border border-ink-600 text-ink-300"
             >
               ~/components/{s.label} <span className="text-ink-500">{s.components.length}</span>
             </span>
@@ -44,7 +44,7 @@ export default function ComponentsIndex() {
 
       <ComponentGallery groups={groups} basePath="/docs/components" />
 
-      <div className="mt-14 border border-ink-600 rounded-md bg-ink-900/50 p-5 flex flex-wrap items-center gap-3">
+      <div className="t-card mt-14 border border-ink-600 rounded-md bg-ink-900/50 p-5 flex flex-wrap items-center gap-3">
         <span className="text-term-magenta text-[12px]">✦</span>
         <p className="text-[13px] text-ink-200">
           Building on OpenTUI?{" "}

@@ -102,3 +102,321 @@ body {
 .font-mono-extra {
   font-feature-settings: "tnum" 1;
 }
+
+/* ================================ themes ================================ */
+/* html[data-theme] switches the site chrome. The terminal demos keep their
+   own palette — the product is the terminal, the chrome is the stage. */
+
+.t-sec-title {
+  display: flex;
+  align-items: center;
+}
+
+/* ----------------------------- skeuomorphism ---------------------------- */
+
+:root[data-theme="skeuo"] {
+  --color-ink-950: #171008;
+  --color-ink-900: #1f1710;
+  --color-ink-850: #261c12;
+  --color-ink-800: #2e2216;
+  --color-ink-750: #382a1b;
+  --color-ink-700: #423221;
+  --color-ink-650: #4d3b28;
+  --color-ink-600: #59452f;
+  --color-ink-500: #745c3f;
+  --color-ink-400: #957a55;
+  --color-ink-300: #bfa67c;
+  --color-ink-200: #d9c7a4;
+  --color-ink-100: #ecdfc2;
+  --color-ink-050: #f9f1dd;
+  --color-term-blue: #6fa7ff;
+  --color-term-cyan: #7fd4e6;
+  --color-term-green: #a9c77e;
+  --color-term-red: #e67e6a;
+  --color-term-yellow: #e6c269;
+  --color-term-magenta: #c8a1f5;
+  --color-term-teal: #80d6b6;
+}
+
+:root[data-theme="skeuo"] body {
+  background-color: #171008;
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% -20%, rgba(214, 166, 90, 0.1), transparent),
+    radial-gradient(ellipse 50% 40% at 85% 15%, rgba(200, 140, 80, 0.06), transparent),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+}
+
+:root[data-theme="skeuo"] .t-header {
+  background: linear-gradient(180deg, #2b1f12, #1e150c);
+  border-bottom: 1px solid #59452f;
+  box-shadow: inset 0 1px 0 rgba(255, 230, 180, 0.08), 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+:root[data-theme="skeuo"] .t-sidebar {
+  background: #201710;
+  border-right: 1px solid #423221;
+}
+:root[data-theme="skeuo"] .t-card {
+  border: 1px solid #59452f;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #382a1b 0%, #261c12 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 200, 0.1),
+    inset 0 -10px 18px rgba(0, 0, 0, 0.35),
+    0 5px 14px rgba(0, 0, 0, 0.45);
+}
+:root[data-theme="skeuo"] .t-card:hover {
+  background: linear-gradient(180deg, #423221 0%, #2e2216 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 200, 0.16),
+    inset 0 -10px 18px rgba(0, 0, 0, 0.3),
+    0 7px 18px rgba(0, 0, 0, 0.55),
+    0 0 0 1px #745c3f;
+}
+:root[data-theme="skeuo"] .t-window {
+  border: 1px solid #59452f;
+  border-radius: 9px;
+  background: #120c06;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 180, 0.08),
+    inset 0 0 44px rgba(0, 0, 0, 0.6),
+    0 8px 24px rgba(0, 0, 0, 0.55),
+    0 0 0 3px #241a10;
+}
+:root[data-theme="skeuo"] .t-window-bar {
+  background: linear-gradient(180deg, #4d3b28, #332617);
+  border-bottom: 1px solid #745c3f;
+}
+:root[data-theme="skeuo"] .t-btn {
+  background: linear-gradient(180deg, #59452f, #382a1b);
+  border: 1px solid #745c3f;
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 235, 200, 0.15), 0 2px 5px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+:root[data-theme="skeuo"] .t-btn:hover {
+  filter: brightness(1.15);
+}
+:root[data-theme="skeuo"] .t-btn:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+:root[data-theme="skeuo"] .t-input {
+  background: #171008;
+  border: 1px solid #59452f;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.55), inset 0 -1px 0 rgba(255, 235, 200, 0.06);
+}
+:root[data-theme="skeuo"] .t-input:focus {
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.55), 0 0 0 2px rgba(216, 168, 90, 0.35);
+}
+:root[data-theme="skeuo"] .t-chip {
+  background: linear-gradient(180deg, #423221, #2e2216);
+  border: 1px solid #59452f;
+  box-shadow: inset 0 1px 0 rgba(255, 235, 200, 0.1), 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+:root[data-theme="skeuo"] .t-sec-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  margin-left: 10px;
+  background: linear-gradient(90deg, #745c3f, transparent);
+}
+
+/* ---------------------------- neumorphism ------------------------------- */
+
+:root[data-theme="neo"] {
+  --color-ink-950: #21263a;
+  --color-ink-900: #252b41;
+  --color-ink-850: #2a3048;
+  --color-ink-800: #2e3550;
+  --color-ink-750: #343c5c;
+  --color-ink-700: #3a4266;
+  --color-ink-650: #424b73;
+  --color-ink-600: #4c5682;
+  --color-ink-500: #5f6a9c;
+  --color-ink-400: #8591c0;
+  --color-ink-300: #aab4dc;
+  --color-ink-200: #cdd4ee;
+  --color-ink-100: #e2e7f8;
+  --color-ink-050: #f4f6ff;
+  --color-term-blue: #8ab0ff;
+  --color-term-cyan: #8ad9f2;
+  --color-term-green: #a5d98f;
+  --color-term-red: #f0929e;
+  --color-term-yellow: #eecf8b;
+  --color-term-magenta: #c9a8f8;
+  --color-term-teal: #93e0c6;
+}
+
+:root[data-theme="neo"] body {
+  background-color: #21263a;
+  background-image: radial-gradient(ellipse 70% 50% at 50% -10%, rgba(138, 176, 255, 0.05), transparent);
+}
+:root[data-theme="neo"] .t-header {
+  background: #252b41;
+  border-bottom: 1px solid transparent;
+  box-shadow: 0 4px 12px rgba(13, 16, 28, 0.5), inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+}
+:root[data-theme="neo"] .t-sidebar {
+  background: #252b41;
+  border-right: 1px solid transparent;
+}
+:root[data-theme="neo"] .t-card {
+  background: #2e3550;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  box-shadow: 8px 8px 16px #1e2336, -8px -8px 16px #3e476a;
+}
+:root[data-theme="neo"] .t-card:hover {
+  box-shadow: 10px 10px 20px #1e2336, -10px -10px 20px #3e476a;
+  transform: translateY(-1px);
+}
+:root[data-theme="neo"] .t-window {
+  background: #2e3550;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  box-shadow: 8px 8px 16px #1e2336, -8px -8px 16px #3e476a;
+}
+:root[data-theme="neo"] .t-window-bar {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+:root[data-theme="neo"] .t-btn {
+  background: #2e3550;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 4px 4px 8px #1e2336, -4px -4px 8px #3e476a;
+}
+:root[data-theme="neo"] .t-btn:hover {
+  box-shadow: 6px 6px 12px #1e2336, -6px -6px 12px #3e476a;
+}
+:root[data-theme="neo"] .t-btn:active {
+  box-shadow: inset 4px 4px 8px #1e2336, inset -4px -4px 8px #3e476a;
+}
+:root[data-theme="neo"] .t-input {
+  background: #2e3550;
+  border: none;
+  border-radius: 12px;
+  box-shadow: inset 5px 5px 10px #1e2336, inset -5px -5px 10px #3e476a;
+}
+:root[data-theme="neo"] .t-input:focus {
+  box-shadow: inset 5px 5px 10px #1e2336, inset -5px -5px 10px #3e476a, 0 0 0 2px rgba(138, 176, 255, 0.25);
+}
+:root[data-theme="neo"] .t-chip {
+  background: #2e3550;
+  border: none;
+  border-radius: 999px;
+  box-shadow: 3px 3px 6px #1e2336, -3px -3px 6px #3e476a;
+}
+:root[data-theme="neo"] .t-sec-title::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  margin-left: 10px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #5f6a9c, transparent);
+}
+
+/* ----------------------------- maximalism ------------------------------- */
+
+:root[data-theme="maxi"] {
+  --color-ink-950: #150b2e;
+  --color-ink-900: #1d1038;
+  --color-ink-850: #241545;
+  --color-ink-800: #2c1a53;
+  --color-ink-750: #352064;
+  --color-ink-700: #3f2775;
+  --color-ink-650: #4a2f88;
+  --color-ink-600: #57389d;
+  --color-ink-500: #7450c4;
+  --color-ink-400: #9d7be8;
+  --color-ink-300: #c2a9f5;
+  --color-ink-200: #dec9ff;
+  --color-ink-100: #eddeff;
+  --color-ink-050: #faf4ff;
+  --color-term-blue: #5f9dff;
+  --color-term-cyan: #3ce0f0;
+  --color-term-green: #7dffa8;
+  --color-term-red: #ff5f7e;
+  --color-term-yellow: #ffcf4d;
+  --color-term-magenta: #e08aff;
+  --color-term-teal: #3fe0c0;
+}
+
+:root[data-theme="maxi"] body {
+  background-color: #150b2e;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 15% 0%, rgba(224, 138, 255, 0.14), transparent),
+    radial-gradient(ellipse 60% 40% at 90% 20%, rgba(63, 224, 192, 0.1), transparent),
+    radial-gradient(ellipse 80% 50% at 50% 110%, rgba(95, 157, 255, 0.12), transparent),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 8px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+}
+:root[data-theme="maxi"] .t-header {
+  background: linear-gradient(90deg, #241545, #3f2775, #241545);
+  border-bottom: 2px solid #57389d;
+  box-shadow: 0 3px 0 #150b2e, 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+:root[data-theme="maxi"] .t-sidebar {
+  background: #1d1038;
+  border-right: 2px solid #3f2775;
+}
+:root[data-theme="maxi"] .t-card {
+  border: 2px solid #7450c4;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2c1a53 0%, #1d1038 70%);
+  box-shadow: 5px 5px 0 #3f2775;
+}
+:root[data-theme="maxi"] .t-card:hover {
+  border-color: #3ce0f0;
+  box-shadow: 8px 8px 0 #57389d;
+  transform: translate(-3px, -3px);
+}
+:root[data-theme="maxi"] .t-window {
+  border: 2px solid #57389d;
+  border-radius: 12px;
+  background: #120827;
+  box-shadow: 6px 6px 0 #3f2775, 0 14px 40px rgba(0, 0, 0, 0.5);
+}
+:root[data-theme="maxi"] .t-window-bar {
+  background: repeating-linear-gradient(-45deg, #2c1a53 0 8px, #352064 8px 16px);
+  border-bottom: 2px solid #57389d;
+}
+:root[data-theme="maxi"] .t-btn {
+  border: 2px solid #7450c4;
+  border-radius: 8px;
+  background: #2c1a53;
+  box-shadow: 3px 3px 0 #3f2775;
+  font-weight: 700;
+}
+:root[data-theme="maxi"] .t-btn:hover {
+  border-color: #3ce0f0;
+  color: #7dffa8;
+}
+:root[data-theme="maxi"] .t-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #3f2775;
+}
+:root[data-theme="maxi"] .t-input {
+  border: 2px solid #57389d;
+  border-radius: 8px;
+  background: #1d1038;
+  box-shadow: 4px 4px 0 #3f2775;
+}
+:root[data-theme="maxi"] .t-input:focus {
+  border-color: #3ce0f0;
+  box-shadow: 4px 4px 0 #57389d;
+}
+:root[data-theme="maxi"] .t-chip {
+  border: 2px solid #57389d;
+  border-radius: 6px;
+  background: #241545;
+  box-shadow: 3px 3px 0 #3f2775;
+}
+:root[data-theme="maxi"] .t-sec-title::after {
+  content: "";
+  flex: 1;
+  height: 3px;
+  margin-left: 12px;
+  background: linear-gradient(90deg, #3ce0f0, #e08aff, #ffcf4d);
+  box-shadow: 2px 2px 0 #150b2e;
+}

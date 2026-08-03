@@ -46,7 +46,7 @@ export default function Home() {
           <Link
             key={c.slug}
             href={`/docs/components/${c.slug}`}
-            className="group rounded-md border border-ink-600 bg-ink-900/50 hover:border-ink-400 hover:bg-ink-800/60 transition-colors p-4"
+            className="t-card group rounded-md border border-ink-600 bg-ink-900/50 hover:border-ink-400 hover:bg-ink-800/60 transition-all p-4"
           >
             <div className="flex items-center gap-2 mb-1.5">
               <span className="text-term-green group-hover:translate-x-0.5 transition-transform text-[12px]">
@@ -59,8 +59,8 @@ export default function Home() {
         ))}
       </div>
 
-      <div className="border border-ink-600 rounded-md overflow-hidden mb-12">
-        <div className="flex items-center gap-2 px-3 h-9 border-b border-ink-600 bg-ink-800 text-[12px] text-ink-400">
+      <div className="t-window border border-ink-600 rounded-md overflow-hidden mb-12">
+        <div className="t-window-bar flex items-center gap-2 px-3 h-9 border-b border-ink-600 bg-ink-800 text-[12px] text-ink-400">
           <span className="text-term-magenta">$</span>
           <span>what powers termino?</span>
         </div>
@@ -87,7 +87,7 @@ export default function Home() {
       <div className="flex flex-wrap gap-3">
         <Link
           href="/docs/components"
-          className="px-4 py-2 text-[13px] rounded-md bg-term-blue/15 border border-term-blue/50 text-term-blue hover:bg-term-blue/25 transition-colors font-semibold"
+          className="t-btn px-4 py-2 text-[13px] rounded-md bg-term-blue/15 border border-term-blue/50 text-term-blue hover:bg-term-blue/25 transition-colors font-semibold"
         >
           browse components →
         </Link>
@@ -95,7 +95,7 @@ export default function Home() {
           href="https://github.com/anomalyco/opentui"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-4 py-2 text-[13px] rounded-md border border-ink-600 text-ink-200 hover:text-ink-050 hover:border-ink-400 transition-colors"
+          className="t-btn px-4 py-2 text-[13px] rounded-md border border-ink-600 text-ink-200 hover:text-ink-050 hover:border-ink-400 transition-colors"
         >
           github ↗
         </a>

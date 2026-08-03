@@ -10,7 +10,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 shrink-0 hidden lg:block border-r border-ink-700 bg-ink-900/60">
+    <aside className="t-sidebar w-64 shrink-0 hidden lg:block border-r border-ink-700 bg-ink-900/60">
       <nav className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto term-scroll p-4">
         {allSections.map((section) => {
           const accent =
