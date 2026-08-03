@@ -54,7 +54,7 @@ export function ComponentGallery({
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={`Search ${total} components…`}
-          className="w-full bg-ink-900/70 border border-ink-600 rounded-md pl-8 pr-3 py-2 text-[13px] text-ink-050 placeholder:text-ink-400 focus:outline-none focus:border-term-cyan/70 focus:ring-1 focus:ring-term-cyan/30 transition-colors"
+          className="t-input w-full bg-ink-900/70 border border-ink-600 rounded-md pl-8 pr-3 py-2 text-[13px] text-ink-050 placeholder:text-ink-400 focus:outline-none focus:border-term-cyan/70 focus:ring-1 focus:ring-term-cyan/30 transition-colors"
         />
         {q && (
           <button
@@ -76,7 +76,7 @@ export function ComponentGallery({
         {filtered.map((g) => (
           <section key={g.label}>
             <div className="flex items-baseline gap-2.5 mb-3">
-              <h2 className="text-[12px] uppercase tracking-widest text-ink-300">
+              <h2 className="t-sec-title text-[12px] uppercase tracking-widest text-ink-300">
                 <span className={`${accent ?? "text-term-blue"}`}>
                   ~/components/
                 </span>
@@ -89,7 +89,7 @@ export function ComponentGallery({
                 <Link
                   key={c.slug}
                   href={`${basePath}/${c.slug}`}
-                  className="group relative rounded-md border border-ink-600 bg-ink-900/50 hover:border-ink-300 hover:bg-ink-800/60 hover:shadow-[0_0_24px_rgba(122,162,247,0.06)] transition-all p-4"
+                  className="t-card group relative rounded-md border border-ink-600 bg-ink-900/50 hover:border-ink-300 hover:bg-ink-800/60 hover:shadow-[0_0_24px_rgba(122,162,247,0.06)] transition-all p-4"
                 >
                   {c.badge && (
                     <span className="absolute top-3 right-3 text-[10px] text-term-magenta border border-ink-600 rounded-sm px-1.5 py-0.5">

@@ -27,7 +27,7 @@ export default async function ComponentLayout({
         {prev && (
           <Link
             href={`/docs/components/${prev.slug}`}
-            className="group flex-1 rounded-md border border-ink-600 p-3 hover:border-ink-400 transition-colors"
+            className="t-card group flex-1 rounded-md border border-ink-600 p-3 hover:border-ink-400 transition-colors"
           >
             <div className="text-[11px] text-ink-400 group-hover:text-ink-300">
               ← {prev.name}
@@ -40,7 +40,7 @@ export default async function ComponentLayout({
         {next && (
           <Link
             href={`/docs/components/${next.slug}`}
-            className="group flex-1 rounded-md border border-ink-600 p-3 text-right hover:border-ink-400 transition-colors"
+            className="t-card group flex-1 rounded-md border border-ink-600 p-3 text-right hover:border-ink-400 transition-colors"
           >
             <div className="text-[11px] text-ink-400 group-hover:text-ink-300">
               {next.name} →

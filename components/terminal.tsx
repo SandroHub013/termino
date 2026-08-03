@@ -39,11 +39,11 @@ export function TerminalWindow({
   return (
     <div
       className={[
-        "rounded-md border border-ink-600 bg-[#12141f] shadow-[0_0_40px_rgba(122,162,247,0.07)] term-scanline relative overflow-hidden",
+        "t-window rounded-md border border-ink-600 bg-[#12141f] shadow-[0_0_40px_rgba(122,162,247,0.07)] term-scanline relative overflow-hidden",
         className,
       ].join(" ")}
     >
-      <div className="flex items-center gap-2 px-3 h-9 border-b border-ink-600 bg-ink-800">
+      <div className="t-window-bar flex items-center gap-2 px-3 h-9 border-b border-ink-600 bg-ink-800">
         <div className="flex gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-term-red/80" />
           <span className="w-2.5 h-2.5 rounded-full bg-term-yellow/80" />

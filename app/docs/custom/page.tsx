@@ -51,7 +51,7 @@ export default function CustomIndex() {
           {Object.entries(GROUP_LABEL).map(([key, label]) => (
             <span
               key={key}
-              className="text-[11px] px-2 py-1 rounded-sm border border-ink-600 text-ink-300"
+              className="t-chip text-[11px] px-2 py-1 rounded-sm border border-ink-600 text-ink-300"
             >
               {label}{" "}
               <span className="text-ink-500">
@@ -114,7 +114,7 @@ $ bun examples/custom/toast.tsx        # space to push toasts`}
           <Link
             key={c.slug}
             href={`/docs/custom/${c.slug}`}
-            className="px-3 py-1.5 text-[12.5px] rounded-md border border-ink-600 text-ink-200 hover:text-ink-050 hover:border-ink-400 transition-colors"
+            className="t-chip px-3 py-1.5 text-[12.5px] rounded-md border border-ink-600 text-ink-200 hover:text-ink-050 hover:border-ink-400 transition-colors"
           >
             {c.name}
           </Link>

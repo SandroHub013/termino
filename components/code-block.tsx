@@ -23,8 +23,8 @@ export function CodeBlock({
   const lines = highlightTs(code);
 
   return (
-    <div className="rounded-md border border-ink-600 bg-[#10131d] overflow-hidden">
-      <div className="flex items-center gap-2 px-3 h-8 border-b border-ink-600 bg-ink-800">
+    <div className="t-window rounded-md border border-ink-600 bg-[#10131d] overflow-hidden">
+      <div className="t-window-bar flex items-center gap-2 px-3 h-8 border-b border-ink-600 bg-ink-800">
         <span className="text-[11px] uppercase tracking-wider text-ink-400">
           {lang}
         </span>
@@ -32,7 +32,7 @@ export function CodeBlock({
         <button
           onClick={copy}
           className={[
-            "ml-auto text-[11px] px-2 py-0.5 rounded-sm border transition-colors",
+            "t-btn ml-auto text-[11px] px-2 py-0.5 rounded-sm border transition-colors",
             copied
               ? "border-term-green text-term-green bg-term-green/10"
               : "border-ink-500 text-ink-300 hover:text-ink-050 hover:border-ink-300",
