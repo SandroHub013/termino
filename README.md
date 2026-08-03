@@ -2,6 +2,8 @@
 
 Terminal UI component gallery and library — docs, interactive browser demos, and the **termino** component library: terminal components built as thin React bindings on `@opentui/react`, restyled for the **agentic CLI** era.
 
+> **Live site:** https://sandrohub013.github.io/termino/
+
 > components for your terminal apps — charts, controls, and a neomorphic **agents** kit built for Claude Code / opencode / Codex / nikcli style TUIs.
 
 ```text

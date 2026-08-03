@@ -2,6 +2,7 @@
   "name": "termino",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://sandrohub013.github.io/termino/",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
