@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { customSection, sections, type NavSection } from "@/lib/nav";
+import { customSections, sections, type NavSection } from "@/lib/nav";
+import { GitHubLink } from "./github-link";
 
-const allSections: NavSection[] = [...sections, customSection];
+const allSections: NavSection[] = [...sections, ...customSections];
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -70,14 +71,7 @@ export function Sidebar() {
           );
         })}
         <div className="mt-8 px-2">
-          <a
-            href="https://github.com/anomalyco/opentui"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-[13px] text-ink-400 hover:text-ink-100 transition-colors"
-          >
-            <span className="text-term-magenta">$</span> github/anomalyco
-          </a>
+          <GitHubLink size={14} className="w-8 h-8" />
           <a
             href="https://opentui.com/docs/getting-started"
             target="_blank"

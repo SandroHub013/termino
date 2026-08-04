@@ -1,7 +1,7 @@
 import { createElement as h } from "react";
 import { useMemo } from "react";
 import { Canvas } from "./canvas";
-import type { CursorCell } from "./chart";
+import { cellsWidth, strWidth, type CursorCell } from "./chart";
 import { NEO, neoEdge, type NeoColors } from "./neo";
 
 export interface StatusBarProps {
@@ -33,16 +33,19 @@ export function StatusBar({
     const push = (ch: string, fg: string) => {
       inner.push({ ch, fg });
     };
+    const used = () => cellsWidth(inner);
+    const tail = `${time ? ` ${time}` : ""}${tokens ? ` ${tokens}` : ""}`;
+    const tailWidth = strWidth(tail);
     push("● ", running ? color : c.dim);
     push(`${mode} `, running ? c.text : c.dim);
     push(`${model}`, c.dim);
     push("  │  ", c.dim);
     if (task) {
-      const room = width - inner.reduce((n, s) => n + s.ch.length, 0) - 4 - (tokens ? tokens.length + 2 : 0) - 6;
-      const clipped = task.length > room ? task.slice(0, Math.max(0, room - 1)) + "…" : task;
+      const room = width - used() - tailWidth;
+      const clipped = strWidth(task) > room ? task.slice(0, Math.max(0, room - 1)) + "…" : task;
       push(clipped, c.text);
     }
-    while (inner.reduce((n, s) => n + s.ch.length, 0) < width - (tokens ? tokens.length + 2 : 0)) {
+    while (used() < width - tailWidth) {
       push(" ", c.text);
     }
     if (time) push(` ${time}`, c.dim);

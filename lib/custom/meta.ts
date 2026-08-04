@@ -1,4 +1,49 @@
-export type CustomGroup = "charts" | "controls" | "layout" | "display" | "agents";
+export type CustomGroup = "data-viz" | "feedback" | "input" | "layout" | "display" | "agentic";
+
+export interface CustomCategory {
+  id: CustomGroup;
+  label: string;
+  blurb: string;
+}
+
+export const CATEGORIES: CustomCategory[] = [
+  {
+    id: "data-viz",
+    label: "data-viz",
+    blurb: "Charts and plots rendered in character cells — line, bar, pie, gauge, heatmap and more.",
+  },
+  {
+    id: "feedback",
+    label: "feedback",
+    blurb: "Progress, status and notification primitives that keep the user informed.",
+  },
+  {
+    id: "input",
+    label: "input",
+    blurb: "Keyboard-driven interactive controls: editors, trees, dialogs.",
+  },
+  {
+    id: "layout",
+    label: "layout",
+    blurb: "Structural helpers for arranging terminal UI.",
+  },
+  {
+    id: "display",
+    label: "display",
+    blurb: "Presentational one-offs that render read-only content.",
+  },
+  {
+    id: "agentic",
+    label: "agentic",
+    blurb: "Building blocks for AI-agent CLIs: spinners, tool calls, approvals, token meters.",
+  },
+];
+
+export interface CustomVariant {
+  id: string;
+  label: string;
+  blurb: string;
+}
 
 export interface CustomMeta {
   slug: string;
@@ -12,6 +57,7 @@ export interface CustomMeta {
   keymap: [string, string][];
   props: { name: string; type: string; default: string; description: string }[];
   notes: string[];
+  variants?: CustomVariant[];
 }
 
 export const customComponents: CustomMeta[] = [
@@ -20,7 +66,7 @@ export const customComponents: CustomMeta[] = [
     name: "LineChart",
     description: "Multi-row line chart with gradient fill, reveal and crosshair",
     accent: "text-term-cyan",
-    group: "charts",
+    group: "data-viz",
     source: "line-chart.tsx",
     demo: "LineChart",
     api: "Half-block line renderer (▀▄█) with 2× vertical resolution per row. Bucket-downsamples when points exceed width. Keyboard navigation via useKeyboard; gate on `focused`.",
@@ -55,7 +101,7 @@ export const customComponents: CustomMeta[] = [
     name: "AreaChart",
     description: "LineChart with a stronger under-line gradient",
     accent: "text-term-teal",
-    group: "charts",
+    group: "data-viz",
     source: "line-chart.tsx",
     demo: "AreaChart",
     api: "Same renderer as LineChart with a brighter default `fill` — the gradient becomes the feature. Shares all props and the shared chart helpers (`lib/custom/chart.ts`).",
@@ -81,7 +127,7 @@ export const customComponents: CustomMeta[] = [
     name: "ProgressBar",
     description: "Animated progress bar with label and percentage",
     accent: "text-term-cyan",
-    group: "controls",
+    group: "feedback",
     source: "progress-bar.tsx",
     demo: "ProgressBar",
     api: "Composition-only component: `<ProgressBar />` builds on `<box>` + `<text>`. No `extend()` registration needed.",
@@ -98,10 +144,17 @@ export const customComponents: CustomMeta[] = [
       { name: "trackColor", type: "string", default: '"#2f3449"', description: "Track color" },
       { name: "percentColor", type: "string", default: '"#565f89"', description: "Percentage text color" },
       { name: "showPercent", type: "boolean", default: "true", description: "Show the percentage value" },
+      { name: "variant", type: '"blocks" | "line" | "dots" | "gradient"', default: '"blocks"', description: "Bar rendering style" },
     ],
     notes: [
       "Fill is a nested `<box>` with computed width — the same pattern the system-monitor example uses.",
       "Animate by feeding it state updated from useTimeline's onUpdate, or plain setInterval.",
+    ],
+    variants: [
+      { id: "blocks", label: "blocks", blurb: "Solid background-color fill (default)" },
+      { id: "line", label: "line", blurb: "Box-drawing ━/─ track glyphs" },
+      { id: "dots", label: "dots", blurb: "Dot-matrix ●/· style" },
+      { id: "gradient", label: "gradient", blurb: "Fill lerps toward white across the track" },
     ],
   },
   {
@@ -109,7 +162,7 @@ export const customComponents: CustomMeta[] = [
     name: "Sparkline",
     description: "Mini time-series chart with gradient fill, dot and reveal",
     accent: "text-term-green",
-    group: "charts",
+    group: "data-viz",
     source: "sparkline.tsx",
     demo: "Sparkline",
     api: "Single-row block-glyph chart (▁▂▃▄▅▆▇█). Per-column gradient mixes `fg → fill` by glyph depth; a ● tracks the latest value. No keyboard input.",
@@ -134,7 +187,7 @@ export const customComponents: CustomMeta[] = [
     name: "Badge",
     description: "Tone-colored status pill built from box + text",
     accent: "text-term-magenta",
-    group: "display",
+    group: "feedback",
     source: "badge.tsx",
     demo: "Badge",
     api: "Pure presentational component with 7 built-in tones.",
@@ -154,7 +207,7 @@ export const customComponents: CustomMeta[] = [
     name: "TreeView",
     description: "Keyboard-navigable tree with expand/collapse",
     accent: "text-term-yellow",
-    group: "controls",
+    group: "input",
     source: "tree-view.tsx",
     demo: "TreeView",
     api: "Recursive flatten of nodes into a flat row list. Keyboard handled via useKeyboard; gate on the `focused` prop.",
@@ -183,7 +236,7 @@ export const customComponents: CustomMeta[] = [
     name: "Toast",
     description: "Toast provider with queue, tones, and auto-dismiss",
     accent: "text-term-red",
-    group: "display",
+    group: "feedback",
     source: "toast.tsx",
     demo: "Toast",
     api: "Context-based: wrap the app in `<ToastProvider>`, then call `useToasts().push(...)` from anywhere. Auto-dismiss via timers; a per-toast timeline renders the TTL bar.",
@@ -207,7 +260,7 @@ export const customComponents: CustomMeta[] = [
     name: "Modal",
     description: "Dimmed overlay dialog with focus on the panel",
     accent: "text-term-blue",
-    group: "controls",
+    group: "input",
     source: "modal.tsx",
     demo: "Modal",
     api: "Renders `null` when closed. When open, an absolute full-screen dim box centers a double-bordered panel; the panel grabs focus; esc/q closes.",
@@ -278,7 +331,7 @@ export const customComponents: CustomMeta[] = [
     name: "Textarea",
     description: "Multiline text input with cursor",
     accent: "text-term-green",
-    group: "controls",
+    group: "input",
     source: "textarea.tsx",
     demo: "Textarea",
     api: "A small editor state machine: `lines: string[]` plus a `{ row, col }` cursor. Character keys insert via `key.sequence`, named keys (backspace, return, arrows) edit. Renders at most `rows` lines — no scrollbar yet.",
@@ -329,7 +382,7 @@ export const customComponents: CustomMeta[] = [
     name: "BarChart",
     description: "Vertical bars with gridlines, value and category labels",
     accent: "text-term-cyan",
-    group: "charts",
+    group: "data-viz",
     source: "bar-chart.tsx",
     demo: "BarChart",
     api: "Column bars over a half-block grid (`height*2` pixel resolution). Bars grow from the baseline, lerp `color → fill` by depth, and sit on optional `─` gridlines from niceTicks. Values float above the bar tops, category labels center under each column group.",
@@ -352,7 +405,7 @@ export const customComponents: CustomMeta[] = [
     name: "PieChart",
     description: "Solid disc colored by share with legend",
     accent: "text-term-magenta",
-    group: "charts",
+    group: "data-viz",
     source: "pie-chart.tsx",
     demo: "PieChart",
     api: "Every cell inside the disc gets the color of the slice covering its angle (12 o'clock start, clockwise). Rim cells lerp toward white for a subtle edge. Legend renders `■ label %` rows below the disc.",
@@ -372,7 +425,7 @@ export const customComponents: CustomMeta[] = [
     name: "RingChart",
     description: "Donut with a centered total and legend",
     accent: "text-term-teal",
-    group: "charts",
+    group: "data-viz",
     source: "ring-chart.tsx",
     demo: "RingChart",
     api: "PieChart's renderer with `innerRatio 0.55`: the core is punched out and the total (or any `center` string) is drawn in the hole. The center label is only shown when a center is provided — pass `center=\"\"` to keep it empty.",
@@ -394,7 +447,7 @@ export const customComponents: CustomMeta[] = [
     name: "Gauge",
     description: "Semicircle arc with warn/danger zones and needle",
     accent: "text-term-green",
-    group: "charts",
+    group: "data-viz",
     source: "gauge.tsx",
     demo: "Gauge",
     api: "Upper-half arc from left to right. The arc is colored per-cell by its value fraction: under `warnAt` base color, under `dangerAt` warn color, else danger color. A bright needle sweeps from the center and a footer row prints `label value/max %`. Value renders as filled arc cells — not a solid track.",
@@ -418,7 +471,7 @@ export const customComponents: CustomMeta[] = [
     name: "Heatmap",
     description: "Background-colored matrix with labels and gradient legend",
     accent: "text-term-yellow",
-    group: "charts",
+    group: "data-viz",
     source: "heatmap.tsx",
     demo: "Heatmap",
     api: "Each matrix cell renders as `cellWidth` spaces with a background color interpolated across the `colors` ramp. Row and column labels frame the grid; a gradient legend row prints min/max. Colors stop at 7 points by default (Tokyonight ramp).",
@@ -441,7 +494,7 @@ export const customComponents: CustomMeta[] = [
     name: "CandlestickChart",
     description: "OHLC candles with wicks, up/down colors and index labels",
     accent: "text-term-red",
-    group: "charts",
+    group: "data-viz",
     source: "candlestick.tsx",
     demo: "Candlestick",
     api: "One candle per data point at the column group center. Bodies are `█` with `▀/▄` edges at half-pixel rows, wicks are `│`; body wins over wick on overlap. Green when close ≥ open, red otherwise. Index labels every few candles on the bottom row.",
@@ -463,7 +516,7 @@ export const customComponents: CustomMeta[] = [
     name: "ScatterChart",
     description: "Multi-series dot plot with gridlines and legend",
     accent: "text-term-blue",
-    group: "charts",
+    group: "data-viz",
     source: "scatter.tsx",
     demo: "Scatter",
     api: "Points map to cells; `●` per series color. Overlapping points from different series render `✚`. Optional `·` gridlines on both axes, min/max range labels on the bottom row, and a legend with each series' y-range.",
@@ -484,7 +537,7 @@ export const customComponents: CustomMeta[] = [
     name: "FunnelChart",
     description: "Centered shrinking bars with per-stage gradient and percent",
     accent: "text-term-red",
-    group: "charts",
+    group: "data-viz",
     source: "funnel.tsx",
     demo: "Funnel",
     api: "One row per stage. Bar width scales with `value/max`, centered in the canvas, followed by the stage label and a right-aligned percent. Colors lerp `baseColor → endColor` across stages unless a stage provides its own `color`.",
@@ -505,7 +558,7 @@ export const customComponents: CustomMeta[] = [
     name: "AgentSpinner",
     description: "Neomorphic status line with spinner, sub-task and elapsed timer",
     accent: "text-term-green",
-    group: "agents",
+    group: "agentic",
     source: "agent-spinner.tsx",
     demo: "AgentSpinner",
     api: "Composition-only. Renders a single beveled panel (light top/left edge, dark bottom/right) around a spinner glyph, label, optional sub text and live ⏱ timer. The `neo.ts` helpers (NEO palette, neoPanel, neoInset, neoFill) power all the agents group components.",
@@ -532,7 +585,7 @@ export const customComponents: CustomMeta[] = [
     name: "StatusBar",
     description: "Agent bottom bar: mode, model, task, clock and token counter",
     accent: "text-term-blue",
-    group: "agents",
+    group: "agentic",
     source: "status-bar.tsx",
     demo: "StatusBar",
     api: "Full-width three-row strip: raised top edge, content row, sunken bottom edge. Left segment shows ● mode + model, center task text (auto-truncated), right-aligned clock and tokens.",
@@ -555,7 +608,7 @@ export const customComponents: CustomMeta[] = [
     name: "ToolCall",
     description: "Invocation card: state glyph, args, duration and collapsible output",
     accent: "text-term-magenta",
-    group: "agents",
+    group: "agentic",
     source: "tool-call.tsx",
     demo: "ToolCall",
     api: "Beveled panel per tool invocation. Header row: ▾/▸ chevron, state glyph (· pending, spinner running, ✓ done, ✗ error), tool name, dimmed args, right-aligned ms duration. Enter/Space toggles an output section when focused.",
@@ -583,7 +636,7 @@ export const customComponents: CustomMeta[] = [
     name: "ApprovalPrompt",
     description: "Permission dialog with keyboard yes/no and selection state",
     accent: "text-term-yellow",
-    group: "agents",
+    group: "agentic",
     source: "approval-prompt.tsx",
     demo: "ApprovalPrompt",
     api: "Beveled confirm dialog: `?` glyph + title, dimmed message, and a [y]es/[n]o key-cap row where the selected cap inverts (light bg, dark fg). Fires `onAnswer(bool)`.",
@@ -609,7 +662,7 @@ export const customComponents: CustomMeta[] = [
     name: "TokenMeter",
     description: "Context window usage bar with zone colors and io stats",
     accent: "text-term-red",
-    group: "agents",
+    group: "agentic",
     source: "token-meter.tsx",
     demo: "TokenMeter",
     api: "Raised label row + recessed (inset) track: dark well with the fill as █ bars. Fill color crosses green → yellow at `warnAt` → red at `dangerAt`. Bottom stats row shows ↑input ↓output ☍cache.",
@@ -632,7 +685,7 @@ export const customComponents: CustomMeta[] = [
     name: "StepList",
     description: "Session plan tracker: pending → running → done with live spinner",
     accent: "text-term-cyan",
-    group: "agents",
+    group: "agentic",
     source: "step-list.tsx",
     demo: "StepList",
     api: "Beveled list container with optional title row. Each step: state glyph (· pending, braille spinner running, ✓ green, ✗ red, – skipped), label, right-aligned detail. `indent` adds a sub-step gutter.",
@@ -652,4 +705,9 @@ export const customComponents: CustomMeta[] = [
 
 export const customBySlug = Object.fromEntries(
   customComponents.map((c) => [c.slug, c]),
+);
+
+/** Components in canonical category order (used for prev/next navigation). */
+export const orderedCustomComponents: CustomMeta[] = CATEGORIES.flatMap((cat) =>
+  customComponents.filter((c) => c.group === cat.id),
 );

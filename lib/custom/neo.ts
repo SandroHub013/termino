@@ -1,4 +1,4 @@
-import { mixColor, type CursorCell } from "./chart";
+import { cellsWidth, mixColor, type CursorCell } from "./chart";
 
 export interface NeoColors {
   surface: string;
@@ -22,7 +22,7 @@ export const SPIN = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "�
 
 const pad = (row: CursorCell[], w: number): CursorCell[] => [
   ...row,
-  ...Array.from({ length: Math.max(0, w - row.length) }, () => ({ ch: " " })),
+  ...Array.from({ length: Math.max(0, w - cellsWidth(row)) }, () => ({ ch: " " })),
 ];
 
 function onSurface(row: CursorCell[], c: NeoColors): CursorCell[] {
@@ -30,7 +30,7 @@ function onSurface(row: CursorCell[], c: NeoColors): CursorCell[] {
 }
 
 export function neoPanel(inner: CursorCell[][], c: NeoColors = NEO): CursorCell[][] {
-  const w = Math.max(1, ...inner.map((r) => r.length));
+  const w = Math.max(1, ...inner.map((r) => cellsWidth(r)));
   const top: CursorCell[] = [
     { ch: "╭", fg: c.light },
     { ch: "─".repeat(w), fg: c.light },
