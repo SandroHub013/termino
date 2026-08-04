@@ -2,6 +2,7 @@ import Link from "next/link";
 import { allComponents } from "@/lib/nav";
 import { DemoSelect } from "@/components/demos/demo-select";
 import { TerminalWindow } from "@/components/terminal";
+import { GitHubLink } from "@/components/github-link";
 
 export default function Home() {
   return (
@@ -91,14 +92,7 @@ export default function Home() {
         >
           browse components →
         </Link>
-        <a
-          href="https://github.com/anomalyco/opentui"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="t-btn px-4 py-2 text-[13px] rounded-md border border-ink-600 text-ink-200 hover:text-ink-050 hover:border-ink-400 transition-colors"
-        >
-          github ↗
-        </a>
+        <GitHubLink size={16} className="w-9 h-9" />
       </div>
     </div>
   );

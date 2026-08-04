@@ -13,6 +13,8 @@ export interface GalleryItem {
 
 export interface GalleryGroup {
   label: string;
+  id?: string;
+  blurb?: string;
   items: GalleryItem[];
 }
 
@@ -74,8 +76,8 @@ export function ComponentGallery({
 
       <div className="space-y-10">
         {filtered.map((g) => (
-          <section key={g.label}>
-            <div className="flex items-baseline gap-2.5 mb-3">
+          <section key={g.label} id={g.id} className="scroll-mt-20">
+            <div className={`flex items-baseline gap-2.5 ${g.blurb ? "mb-1" : "mb-3"}`}>
               <h2 className="t-sec-title text-[12px] uppercase tracking-widest text-ink-300">
                 <span className={`${accent ?? "text-term-blue"}`}>
                   ~/components/
@@ -84,6 +86,9 @@ export function ComponentGallery({
               </h2>
               <span className="text-[11px] text-ink-500">{g.items.length}</span>
             </div>
+            {g.blurb && (
+              <p className="text-[12.5px] text-ink-400 mb-3">{g.blurb}</p>
+            )}
             <div className="grid sm:grid-cols-2 gap-3">
               {g.items.map((c) => (
                 <Link

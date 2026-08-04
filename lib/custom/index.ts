@@ -1,4 +1,4 @@
-export { ProgressBar, type ProgressBarProps } from "./progress-bar";
+export { ProgressBar, type ProgressBarProps, type ProgressBarVariant } from "./progress-bar";
 export { Sparkline, type SparklineProps } from "./sparkline";
 export { LineChart, AreaChart, Chart, type LineChartProps } from "./line-chart";
 export {
