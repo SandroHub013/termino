@@ -1,7 +1,7 @@
 import { createElement as h } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "./canvas";
-import type { CursorCell } from "./chart";
+import { cellsWidth, type CursorCell } from "./chart";
 import { NEO, SPIN, neoPanel, type NeoColors } from "./neo";
 
 export interface AgentSpinnerProps {
@@ -68,6 +68,6 @@ export function AgentSpinner({
   }, [running, frame, label, sub, time, elapsed, color, colors, frames]);
 
   const panel = neoPanel(rows, c);
-  const width = panel[0].length;
+  const width = cellsWidth(panel[0]);
   return h("box", { flexDirection: "column", gap: 0, width }, h(Canvas, { rows: panel, width }));
 }

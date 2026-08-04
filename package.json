@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck:examples": "tsc -p tsconfig.examples.json"
+    "typecheck:examples": "tsc -p tsconfig.examples.json",
+    "demo:tui": "bun examples/custom/cli-showcase.tsx"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",

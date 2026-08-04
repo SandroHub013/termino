@@ -3,19 +3,48 @@
 import { useState } from "react";
 import { C, R, Screen } from "@/lib/term";
 import { TerminalScreen } from "../../terminal";
-import { encodeQR, qrToGlyphs } from "@/lib/custom/qr-encoder";
+import { encodeQR, qrToGlyphs, type QRMatrix } from "@/lib/custom/qr-encoder";
 
 const PAYLOADS = [
   "https://opentui.com",
-  "https://github.com/anomalyco/opentui",
+  "https://github.com/SandroHub013/termino",
   "hi, from termino_",
 ];
 
-export function DemoQRCode() {
+function invertModules(matrix: QRMatrix): QRMatrix {
+  const modules = new Uint8Array(matrix.modules.length);
+  for (let i = 0; i < modules.length; i++) modules[i] = matrix.modules[i] ? 0 : 1;
+  return { ...matrix, modules };
+}
+
+function qrToFullBlocks(matrix: QRMatrix, quiet: number): string[] {
+  const { size, modules } = matrix;
+  const total = size + quiet * 2;
+  const out: string[] = [];
+  for (let y = 0; y < total; y++) {
+    let line = "";
+    for (let x = 0; x < total; x++) {
+      const gx = x - quiet;
+      const gy = y - quiet;
+      const on =
+        gx >= 0 && gy >= 0 && gx < size && gy < size && modules[gy * size + gx] === 1;
+      line += on ? "██" : "  ";
+    }
+    out.push(line);
+  }
+  return out;
+}
+
+export function DemoQRCode({ variant = "half-block" }: { variant?: string }) {
   const [idx, setIdx] = useState(0);
   const value = PAYLOADS[idx];
   const qr = encodeQR(value);
-  const lines = qrToGlyphs(qr, 2);
+  const lines =
+    variant === "full-block"
+      ? qrToFullBlocks(qr, 2)
+      : variant === "inverted"
+        ? qrToGlyphs(invertModules(qr), 2)
+        : qrToGlyphs(qr, 2);
 
   const screen: Screen = {
     rows: [

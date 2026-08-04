@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Sidebar } from "./sidebar";
 import { ThemeSwitcher } from "./theme-switcher";
+import { GitHubLink } from "./github-link";
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -38,14 +39,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             >
               docs ↗
             </a>
-            <a
-              href="https://github.com/anomalyco/opentui"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-ink-050 transition-colors"
-            >
-              github ↗
-            </a>
+            <GitHubLink size={15} className="w-8 h-8" />
           </nav>
           <div className="ml-auto hidden md:flex items-center gap-3">
             <ThemeSwitcher />

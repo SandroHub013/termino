@@ -47,7 +47,7 @@ export function Sparkline({
       if (dist >= -2 && dist <= 0) cells.push({ ch: "▓", fg: mixColor(fg, "#ffffff", 0.45) });
       else cells.push({ ch: "░", fg: mixColor(fg, fill, 0.5) });
     }
-    return h("text", { fg }, mergeRuns(cells).map((s, i) => h("text", { key: i, fg: s.fg }, s.ch)));
+    return h("text", { fg }, mergeRuns(cells).map((s, i) => h("span", { key: i, fg: s.fg }, s.ch)));
   }
 
   if (window.length === 0) return null;
@@ -74,5 +74,5 @@ export function Sparkline({
     cells.push({ ch: BLOCKS[g], fg: mixColor(fg, fill, depth) });
   }
 
-  return h("text", { fg }, mergeRuns(cells).map((s, i) => h("text", { key: i, fg: s.fg }, s.ch)));
+  return h("text", { fg }, mergeRuns(cells).map((s, i) => h("span", { key: i, fg: s.fg }, s.ch)));
 }
