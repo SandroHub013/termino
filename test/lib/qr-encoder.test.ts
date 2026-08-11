@@ -79,6 +79,19 @@ describe("encodeQR", () => {
     }
   });
 
+  it("rejects a mask outside 0..7", () => {
+    expect(() => encodeQR("termino", -1)).toThrow(RangeError);
+    expect(() => encodeQR("termino", 8)).toThrow(RangeError);
+    expect(() => encodeQR("termino", 1.5)).toThrow(/integer in 0\.\.7/);
+    expect(() => encodeQR("termino", Number.NaN)).toThrow(RangeError);
+  });
+
+  it("rejects a non-string payload", () => {
+    // Guards the boundary for untyped JavaScript callers.
+    expect(() => encodeQR(42 as unknown as string)).toThrow(TypeError);
+    expect(() => encodeQR(null as unknown as string)).toThrow(/must be a string/);
+  });
+
   it("produces a different layout per mask", () => {
     const m0 = Array.from(encodeQR("termino", 0).modules);
     const m3 = Array.from(encodeQR("termino", 3).modules);

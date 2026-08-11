@@ -9,12 +9,16 @@ const GF_LOG = new Uint8Array(256);
     x <<= 1;
     if (x & 0x100) x ^= 0x11d;
   }
-  for (let i = 255; i < 512; i++) GF_EXP[i] = GF_EXP[i - 255];
+  for (let i = 255; i < 512; i++) GF_EXP[i] = GF_EXP[i - 255] ?? 0;
 }
 
+/**
+ * Typed-array and fixed-length-buffer reads below are all in-bounds by
+ * construction; `?? 0` keeps that provable without weakening the types.
+ */
 function gfMul(a: number, b: number): number {
   if (a === 0 || b === 0) return 0;
-  return GF_EXP[GF_LOG[a] + GF_LOG[b]];
+  return GF_EXP[(GF_LOG[a] ?? 0) + (GF_LOG[b] ?? 0)] ?? 0;
 }
 
 function gfPolyMod(dividend: number[], divisor: number[]): number[] {
@@ -22,9 +26,9 @@ function gfPolyMod(dividend: number[], divisor: number[]): number[] {
   const dl = divisor.length;
   for (let i = 0; i + dl <= rem.length; i++) {
     const coef = rem[i];
-    if (coef === 0) continue;
+    if (!coef) continue;
     for (let j = 0; j < dl; j++) {
-      rem[i + j] ^= gfMul(divisor[j], coef);
+      rem[i + j] = (rem[i + j] ?? 0) ^ gfMul(divisor[j] ?? 0, coef);
     }
   }
   return rem.slice(rem.length - dl + 1);
@@ -35,8 +39,9 @@ function genPoly(degree: number): number[] {
   for (let i = 0; i < degree; i++) {
     const next = new Array<number>(poly.length + 1).fill(0);
     for (let j = 0; j < poly.length; j++) {
-      next[j] ^= gfMul(poly[j], 1);
-      next[j + 1] ^= gfMul(poly[j], GF_EXP[i]);
+      const coef = poly[j] ?? 0;
+      next[j] = (next[j] ?? 0) ^ gfMul(coef, 1);
+      next[j + 1] = (next[j + 1] ?? 0) ^ gfMul(coef, GF_EXP[i] ?? 0);
     }
     poly = next;
   }
@@ -67,14 +72,27 @@ export interface QRMatrix {
 }
 
 export function encodeQR(text: string, maskPattern?: number): QRMatrix {
+  if (typeof text !== "string") {
+    throw new TypeError("encodeQR: `text` must be a string");
+  }
+  if (
+    maskPattern !== undefined &&
+    (!Number.isInteger(maskPattern) || maskPattern < 0 || maskPattern > 7)
+  ) {
+    throw new RangeError(
+      `encodeQR: \`maskPattern\` must be an integer in 0..7, got ${maskPattern}`,
+    );
+  }
+
   const bytes = Array.from(new TextEncoder().encode(text));
   const version = VERSIONS.findIndex(([, data]) => bytes.length <= data - 2) + 1;
-  if (version < 1) {
+  const spec = VERSIONS[version - 1];
+  if (version < 1 || !spec) {
     throw new Error(
       `QR input too long (${bytes.length} bytes; max 106 for byte mode at EC level L)`,
     );
   }
-  const [size, dataCW, ecCW] = VERSIONS[version - 1];
+  const [size, dataCW, ecCW] = spec;
 
   const bitWriter: number[] = [];
   const pushBits = (value: number, count: number) => {
@@ -99,7 +117,7 @@ export function encodeQR(text: string, maskPattern?: number): QRMatrix {
   const data = new Array<number>(dataCW).fill(0);
   for (let i = 0; i < dataCW; i++) {
     let byte = 0;
-    for (let j = 0; j < 8; j++) byte = (byte << 1) | bitWriter[i * 8 + j];
+    for (let j = 0; j < 8; j++) byte = (byte << 1) | (bitWriter[i * 8 + j] ?? 0);
     data[i] = byte;
   }
 
@@ -172,7 +190,7 @@ export function encodeQR(text: string, maskPattern?: number): QRMatrix {
           (alignPos !== undefined && isAlign(x, row, alignPos, size));
         if (isFunction) continue;
         if (bitIndex < codewords.length * 8) {
-          const byte = codewords[bitIndex >> 3];
+          const byte = codewords[bitIndex >> 3] ?? 0;
           const bit = (byte >> (7 - (bitIndex & 7))) & 1;
           modules[row * size + x] = bit;
           bitIndex++;
@@ -290,7 +308,7 @@ function penalty(modules: Uint8Array, size: number): number {
     let run = 0;
     let prev: number | null = null;
     for (let x = 0; x <= size; x++) {
-      const v = x < size ? modules[y * size + x] : null;
+      const v = x < size ? modules[y * size + x] ?? 0 : null;
       if (v === prev) {
         run++;
       } else {
@@ -304,7 +322,7 @@ function penalty(modules: Uint8Array, size: number): number {
     let run = 0;
     let prev: number | null = null;
     for (let y = 0; y <= size; y++) {
-      const v = y < size ? modules[y * size + x] : null;
+      const v = y < size ? modules[y * size + x] ?? 0 : null;
       if (v === prev) {
         run++;
       } else {
@@ -358,7 +376,7 @@ function penalty(modules: Uint8Array, size: number): number {
   }
 
   let darkCount = 0;
-  for (let i = 0; i < modules.length; i++) darkCount += modules[i];
+  for (let i = 0; i < modules.length; i++) darkCount += modules[i] ?? 0;
   const ratio = (darkCount * 100) / (size * size);
   const deviation = Math.abs(ratio - 50);
   score += Math.floor(deviation / 5) * 10;
@@ -366,7 +384,7 @@ function penalty(modules: Uint8Array, size: number): number {
   return score;
 }
 
-function matchesFinderPattern(seq: number[]): boolean {
+function matchesFinderPattern(seq: readonly (number | undefined)[]): boolean {
   const pattern = [1, 0, 1, 1, 1, 0, 1];
   if (seq.every((v, i) => v === pattern[i])) return true;
   const reversed = pattern.slice().reverse();
@@ -388,19 +406,22 @@ function drawFormat(modules: Uint8Array, size: number, mask: number, ecBits = 1)
     modules[y * size + x] = bit;
   };
 
+  // `bits` always holds 15 entries, so every read below is in bounds.
+  const bitAt = (i: number): number => bits[i] ?? 0;
+
   // copy 1: around top-left finder
   let bi = 0;
-  for (let i = 0; i < 6; i++) put(i, 8, bits[bi++]);
-  put(7, 8, bits[bi++]);
-  put(8, 8, bits[bi++]);
-  put(8, 7, bits[bi++]);
-  for (let i = 5; i >= 0; i--) put(8, i, bits[bi++]);
+  for (let i = 0; i < 6; i++) put(i, 8, bitAt(bi++));
+  put(7, 8, bitAt(bi++));
+  put(8, 8, bitAt(bi++));
+  put(8, 7, bitAt(bi++));
+  for (let i = 5; i >= 0; i--) put(8, i, bitAt(bi++));
 
   // copy 2: top-right + bottom-left
   bi = 0;
-  for (let i = size - 1; i >= size - 7; i--) put(8, i, bits[bi++]);
-  put(size - 8, 8, bits[bi++]);
-  for (let i = 0; i < 7; i++) put(size - 1 - i, 8, bits[14 - i]);
+  for (let i = size - 1; i >= size - 7; i--) put(8, i, bitAt(bi++));
+  put(size - 8, 8, bitAt(bi++));
+  for (let i = 0; i < 7; i++) put(size - 1 - i, 8, bitAt(14 - i));
 }
 
 /** Render matrix to half-block glyph rows: ▀ ▄ █ (dark = true). */

@@ -65,6 +65,6 @@ export function ApprovalPrompt({
   }, [title, message, sel, color, colors]);
 
   const panel = neoPanel(rows, c);
-  const width = cellsWidth(panel[0]);
+  const width = cellsWidth(panel[0] ?? []);
   return h("box", { flexDirection: "column", gap: 0, width }, h(Canvas, { rows: panel, width }));
 }

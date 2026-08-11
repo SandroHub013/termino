@@ -82,6 +82,6 @@ export function TokenMeter({
   }, [used, total, input, output, cached, label, width, fillColor, color, colors]);
 
   const panel = neoPanel(rows, c);
-  const widthFix = cellsWidth(panel[0]);
+  const widthFix = cellsWidth(panel[0] ?? []);
   return h("box", { flexDirection: "column", gap: 0, width: widthFix }, h(Canvas, { rows: panel, width: widthFix }));
 }

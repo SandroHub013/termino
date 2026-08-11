@@ -5,7 +5,7 @@ import { C, R, Screen } from "@/lib/term";
 import { TerminalScreen } from "../../terminal";
 import { encodeQR, qrToGlyphs, type QRMatrix } from "@/lib/custom/qr-encoder";
 
-const PAYLOADS = [
+const PAYLOADS: readonly [string, ...string[]] = [
   "https://opentui.com",
   "https://github.com/SandroHub013/termino",
   "hi, from termino_",
@@ -37,7 +37,7 @@ function qrToFullBlocks(matrix: QRMatrix, quiet: number): string[] {
 
 export function DemoQRCode({ variant = "half-block" }: { variant?: string }) {
   const [idx, setIdx] = useState(0);
-  const value = PAYLOADS[idx];
+  const value = PAYLOADS[idx % PAYLOADS.length] ?? PAYLOADS[0];
   const qr = encodeQR(value);
   const lines =
     variant === "full-block"

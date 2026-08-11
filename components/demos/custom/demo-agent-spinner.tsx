@@ -6,7 +6,7 @@ import { cursorRows } from "@/lib/custom/chart";
 import { NEO, neoPanel } from "@/lib/custom/neo";
 import { TerminalScreen } from "../../terminal";
 
-const PHASES = [
+const PHASES: readonly [{ label: string; sub: string }, ...{ label: string; sub: string }[]] = [
   { label: "reading workspace", sub: "src/ · app/ · lib/ · tests/" },
   { label: "analyzing diff", sub: "18 files · 3 imports changed" },
   { label: "writing patch", sub: "lib/custom/neo.ts +114/−21" },
@@ -21,7 +21,7 @@ export function DemoAgentSpinner() {
     return () => clearInterval(timer);
   }, []);
 
-  const { label, sub } = PHASES[phase];
+  const { label, sub } = PHASES[phase % PHASES.length] ?? PHASES[0];
   const frame = (phase * 7) % 10;
   const panel = neoPanel(
     [

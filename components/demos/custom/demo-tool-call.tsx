@@ -51,7 +51,7 @@ const SEQUENCE: FakeCall[] = [
   },
 ];
 
-const frame = (n: number) => "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"[n % 10];
+const frame = (n: number): string => "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"[n % 10] ?? "⠋";
 
 export function DemoToolCall() {
   const [tick, setTick] = useState(0);

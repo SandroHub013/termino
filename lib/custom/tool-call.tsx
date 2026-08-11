@@ -58,7 +58,7 @@ export function ToolCall({
   const rows = useMemo(() => {
     const glyph =
       state === "running"
-        ? { ch: SPIN[frame % SPIN.length], fg: color }
+        ? { ch: SPIN[frame % SPIN.length] ?? SPIN[0], fg: color }
         : state === "done"
           ? { ch: "✓", fg: "#a5d98f" }
           : state === "error"
@@ -92,6 +92,6 @@ export function ToolCall({
   }, [name, args, state, durationMs, output, expanded, frame, color, colors, running]);
 
   const panel = neoPanel(rows, c);
-  const width = cellsWidth(panel[0]);
+  const width = cellsWidth(panel[0] ?? []);
   return h("box", { flexDirection: "column", gap: 0, width }, h(Canvas, { rows: panel, width }));
 }
