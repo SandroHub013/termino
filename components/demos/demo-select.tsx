@@ -23,7 +23,7 @@ export function DemoSelect() {
   const move = (delta: number) => {
     setIndex((i) => {
       let next = (i + delta + OPTIONS.length) % OPTIONS.length;
-      while (OPTIONS[next].name === "---") next = (next + delta + OPTIONS.length) % OPTIONS.length;
+      while (OPTIONS[next]?.name === "---") next = (next + delta + OPTIONS.length) % OPTIONS.length;
       return next;
     });
     setLastEvent("SELECTION_CHANGED");
@@ -36,7 +36,7 @@ export function DemoSelect() {
     else if (e.key === "ArrowDown" || e.key === "j") move(1);
     else if (e.key === "Enter") {
       setSelected(index);
-      setLastEvent(`ITEM_SELECTED → "${OPTIONS[index].name}"`);
+      setLastEvent(`ITEM_SELECTED → "${OPTIONS[index]?.name ?? ""}"`);
     }
   };
 
@@ -74,7 +74,7 @@ export function DemoSelect() {
       ]),
       R([
         { t: "picked ", fg: C.dim },
-        { t: selected !== null ? OPTIONS[selected].name : "—", fg: C.yellow },
+        { t: (selected !== null ? OPTIONS[selected]?.name : undefined) ?? "—", fg: C.yellow },
       ]),
     ],
   };

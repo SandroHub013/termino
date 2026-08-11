@@ -18,7 +18,9 @@ export const NEO: NeoColors = {
   well: "#252b41",
 };
 
-export const SPIN = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+export const SPIN: readonly [string, ...string[]] = [
+  "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏",
+];
 
 const pad = (row: CursorCell[], w: number): CursorCell[] => [
   ...row,

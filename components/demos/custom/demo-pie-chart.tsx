@@ -23,7 +23,11 @@ export function DemoPieChart() {
 
   const labels = ["web", "api", "batch", "idle"];
   const rows = renderDonut(
-    values.map((v, i) => ({ label: labels[i], value: v, color: PIE_COLORS[i] })),
+    values.map((v, i) => ({
+      label: labels[i] ?? `#${i + 1}`,
+      value: v,
+      color: PIE_COLORS[i % PIE_COLORS.length] ?? PIE_COLORS[0],
+    })),
     W,
     H,
     { innerRatio: 0, legend: true },

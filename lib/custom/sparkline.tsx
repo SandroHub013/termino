@@ -63,7 +63,7 @@ export function Sparkline({
       cells.push({ ch: " ", fg });
       continue;
     }
-    const v = window[Math.min(c, window.length - 1)];
+    const v = window[Math.min(c, window.length - 1)] ?? lo;
     const t = (v - lo) / span;
     const g = Math.min(7, Math.max(0, Math.floor(t * 7.999)));
     if (dot && c === shown - 1 && shown > 0) {
@@ -71,7 +71,7 @@ export function Sparkline({
       continue;
     }
     const depth = (7 - g) / 7;
-    cells.push({ ch: BLOCKS[g], fg: mixColor(fg, fill, depth) });
+    cells.push({ ch: BLOCKS[g] ?? BLOCKS[0], fg: mixColor(fg, fill, depth) });
   }
 
   return h("text", { fg }, mergeRuns(cells).map((s, i) => h("span", { key: i, fg: s.fg }, s.ch)));

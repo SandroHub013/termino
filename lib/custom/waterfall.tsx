@@ -45,6 +45,7 @@ export function WaterfallChart({
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
+    if (!item) continue;
     if (item.isTotal) {
       const start = 0;
       const end = currentRunning;
@@ -92,7 +93,7 @@ export function WaterfallChart({
   const titleStr = ` ${title} `;
   for (let i = 0; i < totalW; i++) {
     header.push({
-      ch: i < titleStr.length ? titleStr[i] : " ",
+      ch: titleStr[i] ?? " ",
       fg: "#f9fafb",
     });
   }
@@ -105,6 +106,7 @@ export function WaterfallChart({
 
     for (let b = 0; b < bars.length; b++) {
       const bar = bars[b];
+      if (!bar) continue;
       const rStart = Math.round(clamp(yScale.to(bar.start), 0, chartH - 1));
       const rEnd = Math.round(clamp(yScale.to(bar.end), 0, chartH - 1));
 
@@ -138,6 +140,7 @@ export function WaterfallChart({
   valRow.push({ ch: " ", fg: "#374151" });
   for (let b = 0; b < bars.length; b++) {
     const bar = bars[b];
+    if (!bar) continue;
     const valStr = (bar.isTotal ? "" : bar.isPos ? "+" : "") + bar.value.toFixed(0);
     const color = bar.isTotal ? totalColor : bar.isPos ? positiveColor : negativeColor;
 
@@ -155,6 +158,7 @@ export function WaterfallChart({
   lblRow.push({ ch: " ", fg: "#374151" });
   for (let b = 0; b < bars.length; b++) {
     const bar = bars[b];
+    if (!bar) continue;
     const shortLbl = bar.label.slice(0, colWidth - 1);
     for (let w = 0; w < colWidth; w++) {
       lblRow.push({

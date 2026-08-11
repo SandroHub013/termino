@@ -34,7 +34,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem("termino-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}`,
+            __html: `try{var t=localStorage.getItem("termino-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){/* storage blocked (private mode, cookies off): keep the default theme */}`,
           }}
         />
       </head>

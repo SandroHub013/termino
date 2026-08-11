@@ -53,7 +53,7 @@ export function SankeyFlow({
   const titleStr = ` ${title} `;
   for (let i = 0; i < width; i++) {
     if (i < titleStr.length) {
-      header.push({ ch: titleStr[i], fg: "#f9fafb" });
+      header.push({ ch: titleStr[i] ?? " ", fg: "#f9fafb" });
     } else {
       header.push({ ch: " ", fg: "#374151" });
     }
@@ -64,7 +64,7 @@ export function SankeyFlow({
   const subHeader: CursorCell[] = [];
   for (let i = 0; i < width; i++) {
     if (i < sourceTitle.length) {
-      subHeader.push({ ch: sourceTitle[i], fg: "#9ca3af" });
+      subHeader.push({ ch: sourceTitle[i] ?? " ", fg: "#9ca3af" });
     } else if (i >= width - targetTitle.length) {
       const idx = i - (width - targetTitle.length);
       subHeader.push({ ch: targetTitle[idx] || " ", fg: "#9ca3af" });
@@ -103,7 +103,7 @@ export function SankeyFlow({
 
     // Bridge / Flow lines
     const flow = flows[r];
-    const flowColor = flow?.color || palette[r % palette.length];
+    const flowColor = flow?.color || palette[r % palette.length] || "#7dcfff";
     const flowPct = flow ? ((flow.value / totalVolume) * 100).toFixed(0) : "";
 
     for (let b = 0; b < flowBridgeW; b++) {
@@ -116,7 +116,7 @@ export function SankeyFlow({
           row.push({ ch: "▶", fg: flowColor });
         } else if (isMid && flowBridgeW > 6) {
           const tag = `${flowPct}%`;
-          row.push({ ch: tag[0] || "═", fg: "#f3f4f6" });
+          row.push({ ch: tag[0] ?? "═", fg: "#f3f4f6" });
         } else {
           row.push({ ch: "═", fg: mixColor(flowColor, "#1f2937", 0.3) });
         }
