@@ -31,7 +31,7 @@ Kept for the record, since each explains a subtlety of the surrounding code.
 
 ### 1. `sampleColumns` dropped a single-point series
 
-*Fixed in [#6](https://github.com/SandroHub013/termino/pull/6), reported as
+*Fixed in [#16](https://github.com/SandroHub013/termino/pull/16), reported as
 [#3](https://github.com/SandroHub013/termino/issues/3).*
 
 ```ts
@@ -49,7 +49,7 @@ longer series goes.
 
 ### 2. `renderGauge` filled the arc inversely to the value
 
-*Fixed in [#6](https://github.com/SandroHub013/termino/pull/6), reported as
+*Fixed in [#16](https://github.com/SandroHub013/termino/pull/16), reported as
 [#4](https://github.com/SandroHub013/termino/issues/4).*
 
 `a = Math.atan2(dy, dx)` runs from `0` at the right edge to `PI` at the left
@@ -73,7 +73,7 @@ The fill test is now `a >= Math.PI * (1 - frac)` and the sweep position is
 
 ### 3. `Sidebar` rendered duplicate React keys
 
-*Fixed in [#6](https://github.com/SandroHub013/termino/pull/6), reported as
+*Fixed in [#16](https://github.com/SandroHub013/termino/pull/16), reported as
 [#5](https://github.com/SandroHub013/termino/issues/5).*
 
 `allSections` concatenates `sections` and `customSections`, and both trees use
