@@ -212,29 +212,66 @@ describe("renderGauge", () => {
     expect(columns[0]).toBeLessThan(columns[4] ?? 0);
   });
 
-  it("KNOWN BUG: the filled arc shrinks as the value grows (see BUGS.md #2)", () => {
-    // Documented behaviour is "value renders as filled arc cells", but the
-    // fill test is `a <= PI * (1 - frac)`, so it paints the *remaining*
-    // portion instead. Pinned so a fix trips this test.
-    const low = renderGauge(5, 0, 100, 24, 8, { showTicks: false });
-    const high = renderGauge(95, 0, 100, 24, 8, { showTicks: false });
-    expect(paintedCells(low)).toBeGreaterThan(paintedCells(high));
+  it("fills more of the arc as the value grows", () => {
+    const painted = [0, 25, 50, 75, 100].map((v) =>
+      paintedCells(renderGauge(v, 0, 100, 24, 8, { showTicks: false })),
+    );
+    expect(painted).toEqual([...painted].sort((a, b) => a - b));
+    expect(painted[0]).toBeLessThan(painted[4] ?? 0);
   });
 
-  it("KNOWN BUG: zone colors are mirrored along the arc (see BUGS.md #2)", () => {
-    // The danger color lands at the minimum end of the sweep, not the maximum.
-    const atMin = renderGauge(0, 0, 100, 24, 8, {
+  it("draws an empty arc at the minimum and a full one at the maximum", () => {
+    const opts = { showTicks: false } as const;
+    const arcCells = (value: number) =>
+      renderGauge(value, 0, 100, 24, 8, opts)
+        .flat()
+        .filter((c) => c.bg).length;
+    expect(arcCells(0)).toBe(0);
+    expect(arcCells(100)).toBeGreaterThan(0);
+  });
+
+  it("puts the warn and danger colors at the top of the range", () => {
+    const opts = {
       dangerColor: "#ff0000",
       warnColor: "#ffaa00",
       color: "#00ff00",
-    });
-    const atMax = renderGauge(99, 0, 100, 24, 8, {
-      dangerColor: "#ff0000",
-      warnColor: "#ffaa00",
-      color: "#00ff00",
-    });
-    expect(new Set(atMin.flat().map((c) => c.fg)).has("#ff0000")).toBe(true);
-    expect(new Set(atMax.flat().map((c) => c.fg)).has("#ff0000")).toBe(false);
+      showTicks: false,
+    } as const;
+    const colors = (value: number) =>
+      new Set(
+        renderGauge(value, 0, 100, 24, 8, opts)
+          .flat()
+          .filter((c) => c.bg)
+          .map((c) => c.fg),
+      );
+
+    // Below warnAt (0.66) only the base color is painted.
+    const low = colors(30);
+    expect(low.has("#00ff00")).toBe(true);
+    expect(low.has("#ffaa00")).toBe(false);
+    expect(low.has("#ffaa00")).toBe(false);
+
+    // Past dangerAt (0.88) all three zones have been swept through.
+    const high = colors(99);
+    expect(high.has("#00ff00")).toBe(true);
+    expect(high.has("#ffaa00")).toBe(true);
+    expect(high.has("#ff0000")).toBe(true);
+  });
+
+  it("respects custom zone thresholds", () => {
+    const colors = (value: number, dangerAt: number) =>
+      new Set(
+        renderGauge(value, 0, 100, 24, 8, {
+          dangerColor: "#ff0000",
+          dangerAt,
+          showTicks: false,
+        })
+          .flat()
+          .filter((c) => c.bg)
+          .map((c) => c.fg),
+      );
+    expect(colors(50, 0.4).has("#ff0000")).toBe(true);
+    expect(colors(50, 0.9).has("#ff0000")).toBe(false);
   });
 
   it("clamps values outside the domain instead of overflowing", () => {
