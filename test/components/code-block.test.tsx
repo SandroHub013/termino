@@ -102,6 +102,17 @@ describe("CodeBlock", () => {
     }
   });
 
+  it("stays in the idle state when the clipboard rejects", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    writeText.mockRejectedValue(new Error("NotAllowedError"));
+    render(<CodeBlock code="x" />);
+    fireEvent.click(screen.getByRole("button", { name: "copy" }));
+    await waitFor(() => expect(consoleError).toHaveBeenCalled());
+    expect(screen.getByRole("button", { name: "copy" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /copied/ })).toBeNull();
+    consoleError.mockRestore();
+  });
+
   it("preserves indentation in the rendered code", () => {
     const { container } = render(<CodeBlock code={"function f() {\n  return 1;\n}"} />);
     expect(container.textContent).toContain("  return 1;");

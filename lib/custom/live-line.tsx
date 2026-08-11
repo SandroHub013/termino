@@ -65,7 +65,7 @@ export function LiveLineChart({
     if (i < statusStr.length) {
       const isLiveTag = i < 6;
       banner.push({
-        ch: statusStr[i],
+        ch: statusStr[i] ?? " ",
         fg: isLiveTag ? pulseColor : "#f3f4f6",
       });
     } else if (i >= width - valStr.length - 1 && i < width - 1) {
@@ -101,6 +101,7 @@ export function LiveLineChart({
   // Draw streaming data points
   for (let i = 0; i < recentData.length; i++) {
     const v = recentData[i];
+    if (v === undefined) continue;
     const c = Math.round(xScale.to(i));
     const rLine = Math.round(clamp(yScale.to(v), 0, chartH - 1));
     const cellCol = tickLabelWidth + c;
@@ -109,8 +110,9 @@ export function LiveLineChart({
     const ch = isLatest ? "●" : "█";
     const fg = isLatest ? pulseColor : mixColor(lineColor, "#ffffff", i / recentData.length);
 
-    if (rLine >= 0 && rLine < chartH && cellCol < width) {
-      rows[rLine + 1][cellCol] = { ch, fg };
+    const targetRow = rLine >= 0 && rLine < chartH ? rows[rLine + 1] : undefined;
+    if (targetRow && cellCol < width) {
+      targetRow[cellCol] = { ch, fg };
     }
   }
 

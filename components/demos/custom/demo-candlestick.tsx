@@ -31,7 +31,10 @@ export function DemoCandlestick() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCandles((prev) => [...prev.slice(-N), makeCandle(prev[prev.length - 1].close)]);
+      setCandles((prev) => [
+        ...prev.slice(-N),
+        makeCandle(prev[prev.length - 1]?.close ?? 100),
+      ]);
     }, 600);
     return () => clearInterval(timer);
   }, []);
@@ -43,7 +46,7 @@ export function DemoCandlestick() {
     showLabels: true,
   });
 
-  const last = candles[candles.length - 1];
+  const last = candles[candles.length - 1] ?? { open: 0, high: 0, low: 0, close: 0 };
   const dir = last.close >= last.open;
 
   const screen: Screen = {

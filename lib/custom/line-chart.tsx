@@ -50,7 +50,7 @@ function renderCells(
     const row: Cell[] = [];
     for (let c = 0; c < width; c++) {
       const p = edge[c];
-      if (p === null) {
+      if (p === null || p === undefined) {
         row.push({ ch: GLYPH.none, fg: color });
         continue;
       }

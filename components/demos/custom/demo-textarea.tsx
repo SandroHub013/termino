@@ -27,7 +27,7 @@ export function DemoTextarea() {
         setValue(next);
       } else if (pos.row > 0) {
         const next = lines.slice();
-        const prev = next[pos.row - 1];
+        const prev = next[pos.row - 1] ?? "";
         next[pos.row - 1] = prev + (next[pos.row] ?? "");
         next.splice(pos.row, 1);
         setPos({ row: pos.row - 1, col: prev.length });

@@ -25,7 +25,7 @@ export function DemoTable() {
       { t: "│ ", fg: C.muted },
     ];
     cells.forEach((cell, i) => {
-      row.push({ t: cell.padEnd(WIDTHS[i] + 1), fg, b: bold });
+      row.push({ t: cell.padEnd((WIDTHS[i] ?? 0) + 1), fg, b: bold });
     });
     row.push({ t: "│", fg: C.muted });
     return R(row);

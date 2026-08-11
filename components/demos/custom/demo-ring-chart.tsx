@@ -24,7 +24,11 @@ export function DemoRingChart() {
   const labels = ["mem", "cpu", "io", "net"];
   const total = values.reduce((a, b) => a + b, 0);
   const rows = renderDonut(
-    values.map((v, i) => ({ label: labels[i], value: v, color: PIE_COLORS[i + 3] })),
+    values.map((v, i) => ({
+      label: labels[i] ?? `#${i + 1}`,
+      value: v,
+      color: PIE_COLORS[(i + 3) % PIE_COLORS.length] ?? PIE_COLORS[0],
+    })),
     W,
     H,
     { innerRatio: 0.55, legend: true, center: String(total) },

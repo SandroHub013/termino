@@ -27,7 +27,7 @@ export function DemoTabSelect() {
       setIndex((i) => (i + 1) % TABS.length);
       setLastEvent("SELECTION_CHANGED");
     } else if (e.key === "Enter") {
-      setLastEvent(`ITEM_SELECTED → "${TABS[index].name}"`);
+      setLastEvent(`ITEM_SELECTED → "${TABS[index]?.name ?? ""}"`);
     }
   };
 
@@ -49,7 +49,7 @@ export function DemoTabSelect() {
       R([]),
       R([
         { t: "panel  ", fg: C.dim },
-        { t: TABS[index].description, fg: C.cyan },
+        { t: TABS[index]?.description ?? "", fg: C.cyan },
       ]),
       R([
         { t: "event  ", fg: C.dim },

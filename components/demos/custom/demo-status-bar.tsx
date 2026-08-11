@@ -21,7 +21,7 @@ export function DemoStatusBar() {
     return () => clearInterval(timer);
   }, []);
 
-  const task = TASKS[tick % TASKS.length];
+  const task = TASKS[tick % TASKS.length] ?? "";
   const ss = String(tick % 60).padStart(2, "0");
   const tokens = `${12 + ((tick * 37) % 60)}k`;
 

@@ -4,7 +4,9 @@ import { useRef, useState } from "react";
 import { C, R, Screen, drawBox } from "@/lib/term";
 import { TerminalScreen } from "../../terminal";
 
-const CELL_STYLES = [
+type CellStyle = { border: string; title: string; bg: string; fg: string };
+
+const CELL_STYLES: readonly [CellStyle, ...CellStyle[]] = [
   { border: C.muted, title: C.blue, bg: C.bg3, fg: C.fg },
   { border: C.muted, title: C.green, bg: C.bg4, fg: C.muted },
   { border: C.muted, title: C.yellow, bg: C.bg5, fg: C.fg },
@@ -27,7 +29,7 @@ export function DemoGrid() {
   const cellW = Math.max(4, Math.floor(38 / cols) - 2);
   const rows: ReturnType<typeof R>[] = [];
   for (let i = 0; i < 6; i++) {
-    const s = CELL_STYLES[i % CELL_STYLES.length];
+    const s = CELL_STYLES[i % CELL_STYLES.length] ?? CELL_STYLES[0];
     const cellRows = drawBox([R([{ t: `${i + 1}`, fg: s.fg }])], cellW, {
       style: "single",
       borderColor: s.border,

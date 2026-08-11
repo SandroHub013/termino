@@ -18,7 +18,14 @@ export function QRCode({
   const matrix: QRMatrix | null = useMemo(() => {
     try {
       return encodeQR(value);
-    } catch {
+    } catch (error) {
+      // An unencodable payload renders nothing; report why rather than
+      // failing silently.
+      console.error(
+        `QRCode: cannot encode value — ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
       return null;
     }
   }, [value]);

@@ -46,7 +46,9 @@ export function DemoScrollBox() {
       { t: " │ ", fg: "#414868", bg: i % 2 ? "#292e42" : "#2f3449" },
       {
         t: isNew
-          ? ["build ok ✓", "deploy started", "pushing image…", "live on port 3000"][i - (N - 4)]
+          ? ["build ok ✓", "deploy started", "pushing image…", "live on port 3000"][
+              i - (N - 4)
+            ] ?? ""
           : `service log line ${i}`,
         fg: isNew ? C.green : "#a9b1d6",
         bg: i % 2 ? "#292e42" : "#2f3449",
@@ -100,7 +102,7 @@ export function DemoScrollBox() {
           ...line,
           { t: " ".repeat(Math.max(0, 46 - 2 - 29 - 1)), fg: C.fg },
           { t: "│", fg: "#414868" },
-          ...scrollbarCol[i],
+          ...(scrollbarCol[i] ?? []),
         ]);
       }),
       R([{ t: "└" + "─".repeat(46) + "┘", fg: "#414868" }]),

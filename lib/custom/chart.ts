@@ -66,8 +66,10 @@ export function sampleColumns(
   const cols: (ColumnSample | null)[] = new Array(width).fill(null);
   if (points.length <= width) {
     for (let i = 0; i < points.length; i++) {
+      const p = points[i];
+      if (!p) continue;
       const col = Math.round((i / (points.length - 1)) * (width - 1));
-      cols[col] = { index: i, value: points[i].y };
+      cols[col] = { index: i, value: p.y };
     }
     return cols;
   }
@@ -78,6 +80,7 @@ export function sampleColumns(
     let best: { index: number; value: number } | null = null;
     for (let i = start; i < end && i < points.length; i++) {
       const p = points[i];
+      if (!p) continue;
       if (!best || p.y > best.value) best = { index: i, value: p.y };
     }
     cols[col] = best;
@@ -311,12 +314,13 @@ export function renderBars(
     const row: CursorCell[] = [];
     for (let c = 0; c < width; c++) {
       const i = Math.min(n - 1, Math.floor(c / gw));
+      const datum = data[i];
       const inBar = i >= 0 && c % gw < barW;
-      if (!inBar) {
+      if (!inBar || !datum) {
         row.push(grid(r));
         continue;
       }
-      const v = data[i].value;
+      const v = datum.value;
       const px = clamp(Math.round((v / hi) * plotPx), 0, plotPx);
       const boundary = plotPx - px;
       const p = r * 2;
@@ -326,11 +330,11 @@ export function renderBars(
           ch: "█",
           fg:
             depth <= 0
-              ? data[i].color ?? color
-              : mixColor(data[i].color ?? color, fill, depth / Math.max(1, plotPx)),
+              ? datum.color ?? color
+              : mixColor(datum.color ?? color, fill, depth / Math.max(1, plotPx)),
         });
       } else if (boundary <= p + 1) {
-        row.push({ ch: "▄", fg: data[i].color ?? color });
+        row.push({ ch: "▄", fg: datum.color ?? color });
       } else {
         row.push(grid(r));
       }
@@ -340,16 +344,20 @@ export function renderBars(
 
   if (showValues) {
     for (let i = 0; i < n; i++) {
-      const v = data[i].value;
+      const datum = data[i];
+      if (!datum) continue;
+      const v = datum.value;
       const px = clamp(Math.round((v / hi) * plotPx), 0, plotPx);
       const target = height - 2 - Math.ceil(px / 2) + 1;
-      if (target < 0 || target >= rows.length) continue;
+      const targetRow = rows[target];
+      if (!targetRow) continue;
       const text = String(Math.round(v));
       if (text.length > barW) continue;
       const x0 = i * gw + Math.max(0, Math.floor((barW - text.length) / 2));
       for (let k = 0; k < text.length; k++) {
         const c = x0 + k;
-        if (c < width) rows[target][c] = { ch: text[k], fg: "#c0caf5" };
+        const ch = text[k];
+        if (c < width && ch !== undefined) targetRow[c] = { ch, fg: "#c0caf5" };
       }
     }
   }
@@ -360,13 +368,14 @@ export function renderBars(
       fg: DIM,
     }));
     for (let i = 0; i < n; i++) {
-      const label = data[i].label;
+      const label = data[i]?.label;
       if (!label) continue;
       const text = label.length > gw ? label.slice(0, Math.max(1, gw)) : label;
       const x0 = i * gw + Math.max(0, Math.floor((gw - text.length) / 2));
       for (let k = 0; k < text.length; k++) {
         const c = x0 + k;
-        if (c < width) labelRow[c] = { ch: text[k], fg: DIM };
+        const ch = text[k];
+        if (c < width && ch !== undefined) labelRow[c] = { ch, fg: DIM };
       }
     }
     rows.push(labelRow);
@@ -441,11 +450,14 @@ export function renderDonut(
   }
 
   if (center && innerRatio > 0) {
-    const y = Math.round(cy);
+    const centerRow = rows[Math.round(cy)];
     const x0 = Math.round(cx - center.length / 2);
-    for (let i = 0; i < center.length; i++) {
+    for (let i = 0; centerRow && i < center.length; i++) {
       const c = x0 + i;
-      if (c >= 0 && c < width) rows[y][c] = { ch: center[i], fg: centerColor };
+      const ch = center[i];
+      if (c >= 0 && c < width && ch !== undefined) {
+        centerRow[c] = { ch, fg: centerColor };
+      }
     }
   }
 
@@ -531,15 +543,15 @@ export function renderGauge(
   const aN = Math.PI * (1 - frac);
   for (let k = 0.2; k <= 0.85; k += 0.325) {
     const c = Math.round(cx + Math.cos(aN) * r * k);
-    const rr = Math.round(cy - Math.sin(aN) * r * k);
-    if (c >= 0 && c < width && rr >= 0 && rr < height) {
-      rows[rr][c] = { ch: "│", fg: "#e0e6fa" };
+    const needleRow = rows[Math.round(cy - Math.sin(aN) * r * k)];
+    if (needleRow && c >= 0 && c < width) {
+      needleRow[c] = { ch: "│", fg: "#e0e6fa" };
     }
   }
   const tipC = Math.round(cx + Math.cos(aN) * r);
-  const tipR = Math.round(cy - Math.sin(aN) * r);
-  if (tipC >= 0 && tipC < width && tipR >= 0 && tipR < height) {
-    rows[tipR][tipC] = { ch: "▌", fg: "#e0e6fa" };
+  const tipRow = rows[Math.round(cy - Math.sin(aN) * r)];
+  if (tipRow && tipC >= 0 && tipC < width) {
+    tipRow[tipC] = { ch: "▌", fg: "#e0e6fa" };
   }
 
   return rows;
@@ -575,11 +587,15 @@ export function renderHeatmap(
   const hi = max ?? Math.max(...flat, 1);
   const pad = Math.max(...rowLabels.map((l) => l.length), 1);
 
+  // A ramp needs at least two stops to interpolate between.
+  const stops: readonly string[] = colors.length >= 2 ? colors : HEAT_COLORS;
+  const stopAt = (i: number): string => stops[clamp(i, 0, stops.length - 1)] ?? DIM;
+
   const ramp = (v: number): string => {
     const t = clamp((v - lo) / (hi - lo || 1), 0, 1);
-    const at = t * (colors.length - 1);
-    const i = Math.min(colors.length - 2, Math.floor(at));
-    return mixColor(colors[i], colors[i + 1], at - i);
+    const at = t * (stops.length - 1);
+    const i = Math.min(stops.length - 2, Math.floor(at));
+    return mixColor(stopAt(i), stopAt(i + 1), at - i);
   };
 
   const rows: CursorCell[][] = [];
@@ -596,7 +612,8 @@ export function renderHeatmap(
       const x0 = pad + 1 + j * cellWidth + Math.max(0, Math.floor((cellWidth - text.length) / 2));
       for (let k = 0; k < text.length; k++) {
         const c = x0 + k;
-        if (c < fullW) head[c] = { ch: text[k], fg: DIM };
+        const ch = text[k];
+        if (c < fullW && ch !== undefined) head[c] = { ch, fg: DIM };
       }
     }
     rows.push(head);
@@ -671,8 +688,8 @@ export function renderCandles(
     }));
     for (let i = 0; i < n; i++) {
       const col = i * gw + Math.floor((gw - 1) / 2);
-      if (col >= width) continue;
       const c = candles[i];
+      if (col >= width || !c) continue;
       const color = c.close >= c.open ? up : down;
       const wLo = Math.min(scale(c.high), scale(c.low));
       const wHi = Math.max(scale(c.high), scale(c.low));
@@ -715,7 +732,8 @@ export function renderCandles(
       const col = i * gw + Math.floor((gw - 1) / 2);
       for (let k = 0; k < text.length; k++) {
         const c = col + k;
-        if (c < width) labelRow[c] = { ch: text[k], fg: DIM };
+        const ch = text[k];
+        if (c < width && ch !== undefined) labelRow[c] = { ch, fg: DIM };
       }
     }
     rows.push(labelRow);
@@ -776,14 +794,13 @@ export function renderScatter(
   for (const s of series) {
     for (const p of s.points) {
       const c = sx(p.x);
-      const r = Math.min(height - 1, Math.round((height * 2 - 2 - sy(p.y)) / 2));
-      if (c >= 0 && c < width && r >= 0 && r < height) {
-        const cur = rows[r][c];
-        if (cur.ch !== " " && cur.ch !== "·") {
-          rows[r][c] = { ch: "✚", fg: "#e0e6fa" };
-        } else {
-          rows[r][c] = { ch: "●", fg: s.color };
-        }
+      const targetRow = rows[Math.min(height - 1, Math.round((height * 2 - 2 - sy(p.y)) / 2))];
+      const cur = c >= 0 && c < width ? targetRow?.[c] : undefined;
+      if (targetRow && cur) {
+        targetRow[c] =
+          cur.ch !== " " && cur.ch !== "·"
+            ? { ch: "✚", fg: "#e0e6fa" }
+            : { ch: "●", fg: s.color };
       }
     }
   }
@@ -848,13 +865,15 @@ export function renderFunnel(
     const lx = x0 + barW + 1;
     for (let k = 0; k < label.length; k++) {
       const c = lx + k;
-      if (c < width) row[c] = { ch: label[k], fg: INK };
+      const ch = label[k];
+      if (c < width && ch !== undefined) row[c] = { ch, fg: INK };
     }
     if (showPercent) {
       const pct = `${Math.round((stage.value / max) * 100)}%`;
       const px = width - pct.length;
       for (let k = 0; k < pct.length; k++) {
-        row[px + k] = { ch: pct[k], fg: color };
+        const ch = pct[k];
+        if (ch !== undefined) row[px + k] = { ch, fg: color };
       }
     }
     rows.push(row);

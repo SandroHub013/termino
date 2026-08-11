@@ -39,7 +39,7 @@ export function StepList({
   const rows = useMemo(() => {
     const glyph = (s: Step) =>
       s.state === "running"
-        ? { ch: SPIN[frame % SPIN.length], fg: color }
+        ? { ch: SPIN[frame % SPIN.length] ?? SPIN[0], fg: color }
         : s.state === "done"
           ? { ch: "✓", fg: "#a5d98f" }
           : s.state === "error"
@@ -73,6 +73,6 @@ export function StepList({
   }, [title, steps, frame, color, colors, running]);
 
   const panel = neoPanel(rows, c);
-  const width = cellsWidth(panel[0]);
+  const width = cellsWidth(panel[0] ?? []);
   return h("box", { flexDirection: "column", gap: 0, width }, h(Canvas, { rows: panel, width }));
 }

@@ -42,7 +42,7 @@ function areaRows(
     for (let c = 0; c < W; c++) {
       const t = c / (W - 1);
       const idx = Math.min(data.length - 1, Math.round(t * (data.length - 1)));
-      const v = data[idx];
+      const v = data[idx] ?? lo;
       const p = ((v - lo) / span) * (height * 2 - 2);
       const pFloor = Math.floor(p);
       const topF = r * 2 <= pFloor;
@@ -103,8 +103,11 @@ export function DemoLineChart() {
     return () => clearInterval(timer);
   }, [loading]);
 
-  const selValue = sel !== null && data.length ? data[Math.round((sel / (W - 1)) * (data.length - 1))] : null;
-  const first = data.length ? data[0] : 0;
+  const selValue =
+    sel !== null && data.length
+      ? data[Math.round((sel / (W - 1)) * (data.length - 1))] ?? null
+      : null;
+  const first = data[0] ?? 0;
   const delta = selValue !== null ? selValue - first : 0;
 
   const tooltip: Screen["rows"] = selValue !== null
