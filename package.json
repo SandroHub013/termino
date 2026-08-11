@@ -18,15 +18,15 @@
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
-    "@next/mdx": "^16.2.12",
-    "@opentui/core": "^0.4.5",
-    "@opentui/react": "^0.4.5",
-    "@opentui/three": "^0.4.5",
+    "@next/mdx": "^16.3.0",
+    "@opentui/core": "^0.5.1",
+    "@opentui/react": "^0.5.1",
+    "@opentui/three": "^0.5.1",
     "@tailwindcss/typography": "^0.5.20",
     "@types/mdx": "^2.0.14",
-    "next": "16.2.12",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "next": "^16.3.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
@@ -34,15 +34,15 @@
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.3",
-    "@types/node": "^20",
+    "@types/node": "^26.2.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitest/coverage-v8": "^3.2.7",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.12",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.0",
     "jsdom": "^30.0.1",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "vitest": "^3.2.7"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   }
 }
