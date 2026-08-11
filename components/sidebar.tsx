@@ -19,7 +19,9 @@ export function Sidebar() {
               ? "text-term-magenta"
               : "text-term-blue";
           return (
-            <div key={section.label} className="mb-6">
+            // Both nav trees declare "layout" and "input", so the label alone
+            // is not unique across the concatenated list; the path is.
+            <div key={`${section.path}/${section.label}`} className="mb-6">
               <div className="text-[11px] uppercase tracking-widest text-ink-400 mb-2 px-2">
                 <span className={accent}>~/docs/{section.path}/</span>
                 {section.label}
