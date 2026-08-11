@@ -1,5 +1,10 @@
 # termino
 
+[![CI](https://github.com/SandroHub013/termino/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/SandroHub013/termino/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/SandroHub013/termino/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/SandroHub013/termino/actions/workflows/codeql.yml)
+[![coverage](https://img.shields.io/badge/coverage-99%25%20statements-brightgreen)](#tests)
+[![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+
 Terminal UI component gallery and library — docs, interactive browser demos, and the **termino** component library: terminal components built as thin React bindings on `@opentui/react`, restyled for the **agentic CLI** era.
 
 > **Live site:** https://sandrohub013.github.io/termino/
@@ -74,7 +79,32 @@ bun examples/custom/tree-view.tsx
 | `npm run build`          | Production build (static-exportable)                 |
 | `npm start`              | Serve the production build                           |
 | `npm run lint`           | ESLint                                               |
+| `npm run typecheck`      | `tsc --noEmit` over the app, library and tests       |
+| `npm test`               | Run the Vitest suite once                            |
+| `npm run test:watch`     | Re-run tests as files change                         |
+| `npm run test:coverage`  | Test suite plus a v8 coverage report in `coverage/`  |
 | `npm run typecheck:examples` | Typecheck `examples/custom/` (JSX for @opentui) |
+
+## Tests
+
+347 tests run on Vitest with the `jsdom` environment and v8 coverage —
+**99% statement and 100% function coverage**, against a 60% floor enforced in
+`vitest.config.mts`.
+
+```bash
+npm run typecheck && npm run lint && npm test
+```
+
+- `test/lib/**` covers every pure export of `lib/`: chart math and cell-grid
+  renderers, the QR encoder, box drawing, neomorphic bevels, the TypeScript
+  tokenizer, and the navigation metadata invariants.
+- `test/components/**` renders the DOM components with
+  `@testing-library/react`, including their empty and error states.
+
+OpenTUI components under `lib/custom/*.tsx` cannot mount in jsdom; they are
+thin wrappers over the pure renderers, which are tested directly. See
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full module map and
+[`BUGS.md`](BUGS.md) for behaviour the suite pins as known-broken.
 
 ## Project structure
 
@@ -133,14 +163,22 @@ Built specifically for **agentic CLI** tools (Claude Code, opencode, Codex, nikc
 
 ## Contributing
 
-PRs welcome. The pattern for a new component is intentionally small:
+PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide. The
+pattern for a new component is intentionally small:
 
 1. add a pure `renderFoo()` to `lib/custom/chart.ts` (or `neo.ts` for beveled UI)
 2. add a thin `Foo.tsx` component (`useMemo` + `<Canvas>`)
 3. add `components/demos/custom/demo-foo.tsx`
 4. register metadata in `lib/custom/meta.ts`, a nav entry in `lib/nav.ts`, the export in `lib/custom/index.ts`, and a `DEMOS` entry in `app/docs/custom/[slug]/page.tsx`
+5. cover the new pure function in `test/lib/`
 
-Run `npm run lint` + `npx tsc --noEmit` before committing.
+Run `npm run typecheck && npm run lint && npm test` before committing — CI runs
+exactly those three.
+
+## Security
+
+Found a vulnerability? Please report it privately — see
+[SECURITY.md](SECURITY.md). Don't open a public issue.
 
 ## Acknowledgements
 
