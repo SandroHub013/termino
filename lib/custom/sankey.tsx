@@ -1,6 +1,6 @@
 import { createElement as h } from "react";
 import { Canvas } from "./canvas";
-import { mixColor, clamp, type CursorCell } from "./chart";
+import { mixColor, type CursorCell } from "./chart";
 
 export interface SankeyFlowLink {
   source: string;
