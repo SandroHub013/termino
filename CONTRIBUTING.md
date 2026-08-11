@@ -4,7 +4,9 @@ Thanks for taking the time. This is a small project, so the process is short.
 
 ## Getting set up
 
-Node 20 or newer is required — CI runs on Node 20.
+Node 22.22.2 or newer is required — CI runs on Node 22. The floor comes from
+jsdom 30, whose engine range is `^22.22.2 || ^24.15.0 || >=26.0.0`; on older
+runtimes every test file dies inside undici before it executes.
 
 ```bash
 git clone https://github.com/SandroHub013/termino.git
