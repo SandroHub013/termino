@@ -1,13 +1,6 @@
 import { createElement as h } from "react";
 import { Canvas } from "./canvas";
-import {
-  toPoints,
-  linearScale,
-  niceTicks,
-  mixColor,
-  clamp,
-  type CursorCell,
-} from "./chart";
+import { linearScale, mixColor, clamp, type CursorCell } from "./chart";
 
 export interface LiveLineChartProps {
   data: number[];
