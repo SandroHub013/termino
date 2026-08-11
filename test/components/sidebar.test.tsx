@@ -85,13 +85,26 @@ describe("Sidebar", () => {
     expect(container.textContent?.match(/▸/g)).toHaveLength(1);
   });
 
-  it("KNOWN BUG: section labels collide across the two nav trees (see BUGS.md #3)", () => {
-    // Sidebar keys its section <div>s by `section.label`, but the opentui and
-    // custom trees both use "layout" and "input", so React sees duplicate keys.
+  it("renders both trees without React key warnings", () => {
+    // The labels genuinely collide — "layout" and "input" exist in both trees —
+    // so the section key has to be qualified by the route to stay unique.
     const labels = [...sections, ...customSections].map((s) => s.label);
-    const duplicates = labels.filter((l, i) => labels.indexOf(l) !== i);
-    expect(duplicates.length).toBeGreaterThan(0);
-    expect(new Set(duplicates)).toEqual(new Set(["layout", "input"]));
+    expect(new Set(labels).size).toBeLessThan(labels.length);
+
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    render(<Sidebar />);
+    const duplicateKeyWarnings = consoleError.mock.calls.filter((args) =>
+      args.some((a) => typeof a === "string" && a.includes("same key")),
+    );
+    expect(duplicateKeyWarnings).toHaveLength(0);
+    consoleError.mockRestore();
+  });
+
+  it("keys every section uniquely across both trees", () => {
+    const keys = [...sections, ...customSections].map(
+      (s) => `${s.path}/${s.label}`,
+    );
+    expect(new Set(keys).size).toBe(keys.length);
   });
 
   it("renders the repository and opentui links", () => {

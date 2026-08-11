@@ -68,7 +68,12 @@ export function sampleColumns(
     for (let i = 0; i < points.length; i++) {
       const p = points[i];
       if (!p) continue;
-      const col = Math.round((i / (points.length - 1)) * (width - 1));
+      // A lone point has no span to spread across; put it in the first
+      // column, where the first point of any longer series also lands.
+      const col =
+        points.length === 1
+          ? 0
+          : Math.round((i / (points.length - 1)) * (width - 1));
       cols[col] = { index: i, value: p.y };
     }
     return cols;
@@ -520,7 +525,10 @@ export function renderGauge(
       let cell: CursorCell = { ch: " ", fg: color };
       if (dy >= 0) {
         const a = Math.atan2(dy, dx);
-        const v = a / Math.PI;
+        // `a` runs PI (left, the minimum) to 0 (right, the maximum), so the
+        // position along the sweep is its complement. Ticks are unaffected:
+        // {0, .25, .5, .75, 1} is symmetric under v -> 1 - v.
+        const v = 1 - a / Math.PI;
         if (showTicks && dist >= r + 0.9 && dist <= r + 1.3) {
           const tickV = Math.round(v * 4) / 4;
           if (Math.abs(v - tickV) < 0.02) {
@@ -530,7 +538,9 @@ export function renderGauge(
           }
         }
         if (dist >= r - 0.7 && dist <= r + 0.7) {
-          if (a <= Math.PI * (1 - frac)) {
+          // Paint from the start of the sweep up to the needle at
+          // PI * (1 - frac), so the arc fills as the value rises.
+          if (a >= Math.PI * (1 - frac)) {
             cell = { ch: " ", fg: zoneColor(v), bg: zoneColor(v) };
           }
         }
