@@ -11,17 +11,25 @@ fix will trip that test and the assertion must be inverted in the same commit.
 
 ## Non-blocking observations
 
-- `lib/custom/live-line.tsx` imports `toPoints` and `niceTicks`, and
-  `lib/custom/sankey.tsx` imports `clamp`, without using them. ESLint reports
-  these as warnings. Harmless, but worth a cleanup pass.
 - `mergeRuns` / `mergeCells` compare `last.ch === cell.ch` *after* having
   appended to `last.ch`, so a run of three identical cells emits two runs
   instead of one. The rendered output is identical — this only costs a few
   extra spans — so it is an inefficiency, not a defect.
-- `.github/workflows/deploy.yml` still pins Node 20, which reached end of life
-  in April 2026. It only runs `next build` and never loads jsdom, so it is
-  unaffected by the constraint that moved CI to Node 22 — but it is worth
-  bumping.
+
+## Upgrades held back
+
+Dependabot will keep proposing these. They are blocked upstream, not by
+preference — re-test rather than assuming they still fail.
+
+- **TypeScript 7.** `typescript-eslint` refuses to load against it outright
+  (*"typescript-eslint does not support TS 7.0"*), and `next build` reports
+  that TS 7 *"does not provide the compiler API required by Next.js"* and
+  suggests TypeScript 6. The repo is on TypeScript 6, which typechecks, lints
+  and builds cleanly. Revisit once `typescript-eslint` ships TS 7 support.
+- **ESLint 10.** The `eslint-plugin-react` bundled inside `eslint-config-next`
+  calls the `context` API that ESLint 10 removed, so every lint run dies with
+  `contextOrFilename.getFilename is not a function`. Revisit when
+  `eslint-config-next` ships a compatible `eslint-plugin-react`.
 
 ---
 

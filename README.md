@@ -87,7 +87,7 @@ bun examples/custom/tree-view.tsx
 
 ## Tests
 
-347 tests run on Vitest with the `jsdom` environment and v8 coverage —
+351 tests run on Vitest with the `jsdom` environment and v8 coverage —
 **99% statement and 100% function coverage**, against a 60% floor enforced in
 `vitest.config.mts`.
 
