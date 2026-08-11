@@ -15,7 +15,18 @@ export function CodeBlock({
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
-    await navigator.clipboard.writeText(code);
+    // The Clipboard API is unavailable outside secure contexts and can be
+    // denied by permission policy — never leave the rejection unhandled.
+    try {
+      await navigator.clipboard.writeText(code);
+    } catch (error) {
+      console.error(
+        `CodeBlock: copy to clipboard failed — ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      return;
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };

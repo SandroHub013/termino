@@ -16,7 +16,7 @@ const NAMES = [
   "run lint + tests",
 ];
 
-const frame = (n: number) => "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"[n % 10];
+const frame = (n: number): string => "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"[n % 10] ?? "⠋";
 
 function stateOf(i: number, tick: number, cycleLen: number): StepState {
   const pos = tick % cycleLen;

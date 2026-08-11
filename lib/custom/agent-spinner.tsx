@@ -10,7 +10,7 @@ export interface AgentSpinnerProps {
   running?: boolean;
   color?: string;
   elapsed?: boolean;
-  frames?: string[];
+  frames?: readonly string[];
   colors?: Partial<NeoColors>;
 }
 
@@ -56,7 +56,10 @@ export function AgentSpinner({
   const rows = useMemo(() => {
     const inner: CursorCell[][] = [];
     const row: CursorCell[] = [
-      { ch: running ? frames[frame % frames.length] : "•", fg: running ? color : c.dim },
+      {
+        ch: (running ? frames[frame % frames.length] : "•") ?? "•",
+        fg: running ? color : c.dim,
+      },
       { ch: " ", fg: c.text },
       { ch: label, fg: running ? c.text : c.dim },
     ];
@@ -68,6 +71,6 @@ export function AgentSpinner({
   }, [running, frame, label, sub, time, elapsed, color, colors, frames]);
 
   const panel = neoPanel(rows, c);
-  const width = cellsWidth(panel[0]);
+  const width = cellsWidth(panel[0] ?? []);
   return h("box", { flexDirection: "column", gap: 0, width }, h(Canvas, { rows: panel, width }));
 }

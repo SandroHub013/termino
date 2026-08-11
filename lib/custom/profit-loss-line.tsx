@@ -95,14 +95,15 @@ export function ProfitLossLine({
   // Draw P&L line & fill
   const colVals: (number | null)[] = new Array(chartW).fill(null);
   for (let i = 0; i < pts.length; i++) {
+    const p = pts[i];
     const cx = Math.round(xScale.to(i));
-    if (cx >= 0 && cx < chartW) {
-      colVals[cx] = pts[i].y;
+    if (p && cx >= 0 && cx < chartW) {
+      colVals[cx] = p.y;
     }
   }
 
   // Interpolate missing columns
-  let lastV = pts[0].y;
+  let lastV = pts[0]?.y ?? 0;
   for (let c = 0; c < chartW; c++) {
     if (colVals[c] === null) {
       colVals[c] = lastV;
@@ -127,10 +128,11 @@ export function ProfitLossLine({
     const rEnd = Math.max(rLine, zeroRow);
 
     for (let r = rStart; r <= rEnd; r++) {
-      if (r < 0 || r >= chartH) continue;
+      const targetRow = r >= 0 && r < chartH ? rows[r] : undefined;
+      if (!targetRow) continue;
       const isLineCell = r === rLine;
       const ch = isLineCell ? "█" : isPos ? "▀" : "▄";
-      rows[r][cellCol] = {
+      targetRow[cellCol] = {
         ch,
         fg: isLineCell ? color : dimColor,
       };
@@ -146,7 +148,7 @@ export function ProfitLossLine({
   const titleStr = ` ${title} `;
   for (let i = 0; i < totalW; i++) {
     if (i < titleStr.length) {
-      headerCells.push({ ch: titleStr[i], fg: "#f3f4f6" });
+      headerCells.push({ ch: titleStr[i] ?? " ", fg: "#f3f4f6" });
     } else if (i >= totalW - netStr.length - 1 && i < totalW - 1) {
       const idx = i - (totalW - netStr.length - 1);
       headerCells.push({ ch: netStr[idx] || " ", fg: isNetPos ? profitColor : lossColor });

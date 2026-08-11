@@ -98,7 +98,10 @@ export default async function CustomPage({
     source = `// could not read ${meta.source}`;
   }
 
+  // `meta.demo` is metadata, so a typo there must not render `undefined` as a
+  // component — treat a missing demo as a missing page.
   const Demo = DEMOS[meta.demo as keyof typeof DEMOS];
+  if (!Demo) notFound();
 
   return (
     <article className="max-w-3xl mx-auto px-4 md:px-8 py-10">

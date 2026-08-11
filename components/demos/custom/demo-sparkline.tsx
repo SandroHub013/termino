@@ -5,7 +5,7 @@ import { C, R, Screen } from "@/lib/term";
 import { mixColor } from "@/lib/custom/chart";
 import { TerminalScreen } from "../../terminal";
 
-const BLOCKS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
+const BLOCKS: readonly [string, ...string[]] = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
 const W = 40;
 const FILL = "#1a1b26";
 
@@ -39,13 +39,13 @@ export function DemoSparkline() {
         push(segs, " ", color);
         continue;
       }
-      const v = window[Math.min(c, window.length - 1)];
+      const v = window[Math.min(c, window.length - 1)] ?? lo;
       const g = Math.min(7, Math.max(0, Math.floor(((v - lo) / span) * 7.999)));
       if (c === shown - 1 && shown > 0) {
         push(segs, "●", mixColor(color, "#ffffff", 0.6));
         continue;
       }
-      push(segs, BLOCKS[g], mixColor(color, FILL, (7 - g) / 7));
+      push(segs, BLOCKS[g] ?? BLOCKS[0], mixColor(color, FILL, (7 - g) / 7));
     }
     return R(segs);
   }
