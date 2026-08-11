@@ -219,12 +219,22 @@ describe("sampleColumns", () => {
     expect(cols.map((c) => c?.value)).toEqual([3, 1, 4]);
   });
 
-  it("KNOWN BUG: drops a single-point series (see BUGS.md #1)", () => {
-    // points.length - 1 === 0 makes the column index NaN, so nothing lands
-    // in the output array. Pinned here so a fix trips this test.
+  it("places a single-point series in the first column", () => {
     const cols = sampleColumns([{ x: 0, y: 5 }], 4);
     expect(cols).toHaveLength(4);
-    expect(cols.every((c) => c === null)).toBe(true);
+    expect(cols[0]).toEqual({ index: 0, value: 5 });
+    expect(cols.slice(1).every((c) => c === null)).toBe(true);
+  });
+
+  it("never produces a NaN column index", () => {
+    for (const n of [1, 2, 3, 7]) {
+      const points = Array.from({ length: n }, (_, x) => ({ x, y: x }));
+      const cols = sampleColumns(points, 6);
+      expect(cols).toHaveLength(6);
+      // A NaN index would silently land outside the array, leaving fewer
+      // samples than points.
+      expect(cols.filter((c) => c !== null).length).toBeGreaterThan(0);
+    }
   });
 });
 
