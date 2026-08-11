@@ -22,7 +22,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # jsdom 30 requires ^22.22.2 || ^24.15.0 || >=26.0.0. On Node 20 every
+          # test file dies in undici with "webidl.util.markAsUncloneable is not
+          # a function" before it runs. Node 20 is also EOL as of 2026-04.
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
