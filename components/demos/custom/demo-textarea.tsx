@@ -6,6 +6,13 @@ import { TerminalScreen } from "../../terminal";
 
 const ROWS = 4;
 
+/** The caret inverts the character it sits on, or draws a block past the end
+ *  of the line where there is nothing to invert. */
+function caretCells(at: string) {
+  if (at) return [{ t: at, fg: C.bg2, bg: C.cyan }];
+  return [{ t: "█", fg: C.cyan }];
+}
+
 export function DemoTextarea() {
   const [lines, setLines] = useState<string[]>(["type something…"]);
   const [pos, setPos] = useState({ row: 0, col: 0 });
@@ -82,11 +89,7 @@ export function DemoTextarea() {
     const isCursor = focused && ri === pos.row;
     return R([
       { t: before, fg: C.fg },
-      ...(isCursor
-        ? at
-          ? [{ t: at, fg: C.bg2, bg: C.cyan }]
-          : [{ t: "█", fg: C.cyan }]
-        : []),
+      ...(isCursor ? caretCells(at) : []),
       { t: after, fg: C.fg },
     ]);
   });

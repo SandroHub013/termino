@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { C, R, type Screen } from "@/lib/term";
 import { cursorRows } from "@/lib/custom/chart";
-import { NEO, neoPanel } from "@/lib/custom/neo";
+import { NEO, neoPanel, stateGlyph } from "@/lib/custom/neo";
 import type { StepState } from "@/lib/custom/step-list";
 import { TerminalScreen } from "../../terminal";
 
@@ -36,14 +36,7 @@ export function DemoStepList() {
   const cycleLen = NAMES.length + 2;
   const steps = NAMES.map((name, i) => {
     const st = stateOf(i, tick, cycleLen);
-    const g =
-      st === "running"
-        ? { ch: frame(tick), fg: "#a5d98f" }
-        : st === "done"
-          ? { ch: "✓", fg: "#a5d98f" }
-          : st === "error"
-            ? { ch: "✗", fg: "#f0929e" }
-            : { ch: "·", fg: NEO.dim };
+    const g = stateGlyph(st, { ch: frame(tick), fg: "#a5d98f" });
     const row: { ch: string; fg: string; bg?: string }[] = [
       { ch: " ", fg: NEO.text },
       g,

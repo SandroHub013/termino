@@ -22,6 +22,35 @@ export const SPIN: readonly [string, ...string[]] = [
   "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏",
 ];
 
+/**
+ * The status glyph a step, task or tool call shows for `state`. Only the
+ * running frame varies between callers — it comes from their own spinner and
+ * accent colour — so they pass it in rather than each repeating the rest.
+ */
+export interface StatusGlyph {
+  ch: string;
+  fg: string;
+}
+
+export function stateGlyph(
+  state: string,
+  running: StatusGlyph,
+  c: NeoColors = NEO,
+): StatusGlyph {
+  switch (state) {
+    case "running":
+      return running;
+    case "done":
+      return { ch: "✓", fg: "#a5d98f" };
+    case "error":
+      return { ch: "✗", fg: "#f0929e" };
+    case "skipped":
+      return { ch: "–", fg: c.dim };
+    default:
+      return { ch: "·", fg: c.dim };
+  }
+}
+
 const pad = (row: CursorCell[], w: number): CursorCell[] => [
   ...row,
   ...Array.from({ length: Math.max(0, w - cellsWidth(row)) }, () => ({ ch: " " })),

@@ -22,6 +22,15 @@ const LINES: [string, string][] = [
 
 const W = 54;
 
+/** How each diff marker paints its line: row tint, text, and the marker glyph
+ *  itself, which sits a shade dimmer than the text on a context line. */
+const MARKER_STYLE: Record<string, { bg?: string; fg: string; markFg: string }> = {
+  "+": { bg: "rgba(158,206,106,0.12)", fg: C.green, markFg: C.green },
+  "-": { bg: "rgba(247,118,142,0.12)", fg: C.red, markFg: C.red },
+};
+
+const CONTEXT_STYLE = { bg: undefined, fg: C.fg, markFg: C.dim };
+
 export function DemoDiff() {
   const rows: Screen["rows"] = [
     R([
@@ -38,11 +47,10 @@ export function DemoDiff() {
   ];
 
   LINES.forEach(([mark, text]) => {
-    const bg = mark === "+" ? "rgba(158,206,106,0.12)" : mark === "-" ? "rgba(247,118,142,0.12)" : undefined;
-    const fg = mark === "+" ? C.green : mark === "-" ? C.red : C.fg;
+    const { bg, fg, markFg } = MARKER_STYLE[mark] ?? CONTEXT_STYLE;
     rows.push(
       R([
-        { t: mark, fg: mark === "+" ? C.green : mark === "-" ? C.red : C.dim, bg },
+        { t: mark, fg: markFg, bg },
         { t: " " + text, fg, bg },
         { t: " ".repeat(Math.max(0, W - 1 - text.length)), fg, bg },
       ]),

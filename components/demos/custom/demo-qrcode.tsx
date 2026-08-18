@@ -35,16 +35,17 @@ function qrToFullBlocks(matrix: QRMatrix, quiet: number): string[] {
   return out;
 }
 
+function renderVariant(variant: string, qr: QRMatrix): string[] {
+  if (variant === "full-block") return qrToFullBlocks(qr, 2);
+  if (variant === "inverted") return qrToGlyphs(invertModules(qr), 2);
+  return qrToGlyphs(qr, 2);
+}
+
 export function DemoQRCode({ variant = "half-block" }: Readonly<{ variant?: string }>) {
   const [idx, setIdx] = useState(0);
   const value = PAYLOADS[idx % PAYLOADS.length] ?? PAYLOADS[0];
   const qr = encodeQR(value);
-  const lines =
-    variant === "full-block"
-      ? qrToFullBlocks(qr, 2)
-      : variant === "inverted"
-        ? qrToGlyphs(invertModules(qr), 2)
-        : qrToGlyphs(qr, 2);
+  const lines = renderVariant(variant, qr);
 
   const screen: Screen = {
     rows: [

@@ -25,6 +25,16 @@ const FILES: TNode[] = [
   { name: "tsconfig.json" },
 ];
 
+function branchGlyph(expandable: boolean, isExpanded: boolean): string {
+  if (!expandable) return "·";
+  return isExpanded ? "▾" : "▸";
+}
+
+function rowColor(isSelected: boolean, expandable: boolean): string {
+  if (isSelected) return C.yellow;
+  return expandable ? C.cyan : "#a9b1d6";
+}
+
 interface Flat {
   node: TNode;
   path: string;
@@ -97,14 +107,14 @@ export function DemoTreerView() {
 
   const rows: Screen["rows"] = flat.map((item, i) => {
     const isSel = focused && i === selected;
-    const glyph = item.expandable ? (expanded.has(item.path) ? "▾" : "▸") : "·";
+    const glyph = branchGlyph(item.expandable, expanded.has(item.path));
     const pad = " ".repeat(1 + item.depth * 2);
     const bg = isSel ? "#334455" : undefined;
     return R([
       { t: pad, bg },
       {
         t: `${glyph} ${item.node.name}`,
-        fg: isSel ? C.yellow : item.expandable ? C.cyan : "#a9b1d6",
+        fg: rowColor(isSel, item.expandable),
         bg,
       },
     ]);

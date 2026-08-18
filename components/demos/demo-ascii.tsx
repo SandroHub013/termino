@@ -10,6 +10,13 @@ const ART = [
   "  ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝ ╚═╝",
 ];
 
+/** Three flat colour bands across the height of the banner. */
+function hueColor(hue: number): string {
+  if (hue < 0.33) return C.cyan;
+  if (hue < 0.66) return C.magenta;
+  return C.blue;
+}
+
 const GLYPHS = [
   "█",
   "▓",
@@ -29,7 +36,7 @@ export function DemoAscii() {
 
   ART.forEach((line, i) => {
     const hue = i / ART.length;
-    const fg = hue < 0.33 ? C.cyan : hue < 0.66 ? C.magenta : C.blue;
+    const fg = hueColor(hue);
     rows.push(R([{ t: line, fg, b: true }]));
   });
 
