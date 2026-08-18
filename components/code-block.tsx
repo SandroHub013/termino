@@ -7,11 +7,11 @@ export function CodeBlock({
   code,
   lang = "ts",
   title,
-}: {
+}: Readonly<{
   code: string;
   lang?: string;
   title?: string;
-}) {
+}>) {
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {

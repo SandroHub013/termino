@@ -22,11 +22,11 @@ export function ComponentGallery({
   groups,
   basePath,
   accent,
-}: {
+}: Readonly<{
   groups: GalleryGroup[];
   basePath: string;
   accent?: string;
-}) {
+}>) {
   const [q, setQ] = useState("");
   const ql = q.trim().toLowerCase();
 

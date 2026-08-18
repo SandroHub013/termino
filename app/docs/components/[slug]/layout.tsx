@@ -4,10 +4,10 @@ import { allComponents } from "@/lib/nav";
 export default async function ComponentLayout({
   children,
   params,
-}: {
+}: Readonly<{
   children: React.ReactNode;
   params: Promise<{ slug: string }>;
-}) {
+}>) {
   const { slug } = await params;
   const idx = allComponents.findIndex((c) => c.slug === slug);
   const prev = idx > 0 ? allComponents[idx - 1] : null;
