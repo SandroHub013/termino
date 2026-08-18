@@ -1,5 +1,10 @@
 "use client";
 
+/* eslint-disable react/no-array-index-key -- These renderers draw a fixed
+   terminal grid: a child's identity *is* its row and column, and the grid
+   never reorders, so the index is the stable key rather than a stand-in
+   for one. */
+
 import { useState } from "react";
 import { highlightTs } from "@/lib/highlight";
 

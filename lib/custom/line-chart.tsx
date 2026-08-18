@@ -1,3 +1,8 @@
+/* eslint-disable react/no-array-index-key -- These renderers draw a fixed
+   terminal grid: a child's identity *is* its row and column, and the grid
+   never reorders, so the index is the stable key rather than a stand-in
+   for one. */
+
 import { createElement as h, useEffect, useMemo, useState } from "react";
 import { useKeyboard } from "@opentui/react";
 import {
