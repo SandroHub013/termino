@@ -31,6 +31,9 @@ import {
   TreeNode,
 } from "../../lib/custom";
 
+/** Number keys that jump straight to a tab, in tab order. */
+const TAB_KEYS = ["1", "2", "3", "4", "5"];
+
 const TREE_NODES: TreeNode[] = [
   {
     name: "src",
@@ -80,43 +83,39 @@ export function App() {
     if (next === 4) setEditing(true);
   };
 
-  // Keyboard navigation
+  // Global navigation: only reached once nothing on the page has claimed the
+  // key for itself.
+  const navigate = (name: string) => {
+    if (name === "q") process.exit(0);
+    if (name === "m") setModalOpen(true);
+
+    const digit = TAB_KEYS.indexOf(name);
+    if (digit >= 0) goToTab(digit);
+
+    // The tab strip takes the arrows only when no widget wants them.
+    if (!arrowsOwned && name === "right") goToTab((tab + 1) % TAB_KEYS.length);
+    if (!arrowsOwned && name === "left") goToTab((tab - 1 + TAB_KEYS.length) % TAB_KEYS.length);
+
+    if (tab === 4 && !editing && name === "return") setEditing(true);
+  };
+
   useKeyboard((key) => {
+    const name = key.name ?? "";
+
+    // An open modal swallows everything; escape or [m] closes it.
     if (modalOpen) {
-      if (key.name === "escape" || key.name === "m") {
-        setModalOpen(false);
-      }
+      if (name === "escape" || name === "m") setModalOpen(false);
       return;
     }
 
     // While the textarea is focused it owns every key (including q/m/digits);
     // [esc] blurs it and hands control back to global navigation.
     if (tab === 4 && editing) {
-      if (key.name === "escape") setEditing(false);
+      if (name === "escape") setEditing(false);
       return;
     }
 
-    if (key.name === "q") {
-      process.exit(0);
-    }
-    if (key.name === "m") {
-      setModalOpen(true);
-    }
-    if (key.name === "1") goToTab(0);
-    if (key.name === "2") goToTab(1);
-    if (key.name === "3") goToTab(2);
-    if (key.name === "4") goToTab(3);
-    if (key.name === "5") goToTab(4);
-
-    if (key.name === "right" && !arrowsOwned) {
-      goToTab((tab + 1) % 5);
-    }
-    if (key.name === "left" && !arrowsOwned) {
-      goToTab((tab - 1 + 5) % 5);
-    }
-    if (tab === 4 && !editing && key.name === "return") {
-      setEditing(true);
-    }
+    navigate(name);
   });
 
   // Live background ticking

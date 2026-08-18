@@ -2,35 +2,34 @@
 
 import { useEffect, useRef, useState } from "react";
 import { C, R, Screen } from "@/lib/term";
+import { mixColor } from "@/lib/custom/chart";
 import { TerminalScreen } from "../../terminal";
 
 const W = 22;
 
-function hexMix(a: string, b: string, t: number): string {
-  const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
-  const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
-  return `#${pa
-    .map((v, i) => Math.round(v + ((pb[i] ?? v) - v) * t).toString(16).padStart(2, "0"))
-    .join("")}`;
+const TRACK_COLOR = "#2f3449";
+
+/** Filled and unfilled glyph for each variant. */
+const BLOCKS: [string, string] = ["█", "░"];
+const VARIANT_GLYPHS: Record<string, [string, string]> = {
+  line: ["━", "─"],
+  dots: ["●", "·"],
+  gradient: BLOCKS,
+};
+
+function barCell(i: number, isFill: boolean, variant: string, color: string) {
+  const [fillCh, trackCh] = VARIANT_GLYPHS[variant] ?? BLOCKS;
+  if (!isFill) return { t: trackCh, fg: TRACK_COLOR };
+  // The gradient variant lightens towards the right end of the bar.
+  const fg = variant === "gradient" ? mixColor(color, "#ffffff", (i / (W - 1)) * 0.55) : color;
+  return { t: fillCh, fg };
 }
 
 function bar(value: number, color: string, variant: string) {
   const pct = Math.max(0, Math.min(100, value));
   const filled = Math.round((pct / 100) * W);
-  const cells: { t: string; fg: string }[] = [];
-  for (let i = 0; i < W; i++) {
-    const isFill = i < filled;
-    if (variant === "line") cells.push({ t: isFill ? "━" : "─", fg: isFill ? color : "#2f3449" });
-    else if (variant === "dots") cells.push({ t: isFill ? "●" : "·", fg: isFill ? color : "#2f3449" });
-    else if (variant === "gradient")
-      cells.push({
-        t: isFill ? "█" : "░",
-        fg: isFill ? hexMix(color, "#ffffff", (i / (W - 1)) * 0.55) : "#2f3449",
-      });
-    else cells.push({ t: isFill ? "█" : "░", fg: isFill ? color : "#2f3449" });
-  }
   return R([
-    ...cells,
+    ...Array.from({ length: W }, (_, i) => barCell(i, i < filled, variant, color)),
     { t: " ", fg: C.fg },
     { t: String(Math.round(pct)).padStart(3), fg: C.dim },
   ]);
