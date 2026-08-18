@@ -152,7 +152,7 @@ export function App() {
       <box style={{ flexDirection: "row", gap: 1 }}>
         {tabTitles.map((title, idx) => (
           <box
-            key={idx}
+            key={title}
             style={{
               paddingLeft: 1,
               paddingRight: 1,
