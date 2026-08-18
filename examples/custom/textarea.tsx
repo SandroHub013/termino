@@ -10,9 +10,8 @@ function App() {
         rows={4}
         placeholder="write a release note…"
         focused
-        onChange={(v) => {
-          // fire-and-forget: log or persist elsewhere
-          void v;
+        onChange={() => {
+          // fire-and-forget: log or persist the new value here
         }}
       />
       <text fg="#565f89">ctrl-c quits · type, enter, arrows, backspace</text>

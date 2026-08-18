@@ -33,7 +33,9 @@ export function StatusBar({
       inner.push({ ch, fg });
     };
     const used = () => cellsWidth(inner);
-    const tail = `${time ? ` ${time}` : ""}${tokens ? ` ${tokens}` : ""}`;
+    const timePart = time ? ` ${time}` : "";
+    const tokensPart = tokens ? ` ${tokens}` : "";
+    const tail = timePart + tokensPart;
     const tailWidth = strWidth(tail);
     push("● ", running ? color : c.dim);
     push(`${mode} `, running ? c.text : c.dim);
