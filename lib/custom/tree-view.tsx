@@ -46,10 +46,11 @@ function flatten(
 ) {
   for (const node of nodes) {
     const path = base ? `${base}/${node.name}` : node.name;
-    const expandable = !!node.children?.length;
+    const children = node.children ?? [];
+    const expandable = children.length > 0;
     out.push({ node, path, depth, expandable });
     if (expandable && expanded.has(path)) {
-      flatten(node.children!, expanded, depth + 1, path, out);
+      flatten(children, expanded, depth + 1, path, out);
     }
   }
 }
