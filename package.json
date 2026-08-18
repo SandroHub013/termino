@@ -18,13 +18,13 @@
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
-    "@next/mdx": "^16.3.0",
-    "@opentui/core": "^0.5.1",
-    "@opentui/react": "^0.5.1",
-    "@opentui/three": "^0.5.1",
+    "@next/mdx": "^16.3.1",
+    "@opentui/core": "^0.5.3",
+    "@opentui/react": "^0.5.3",
+    "@opentui/three": "^0.5.3",
     "@tailwindcss/typography": "^0.5.20",
     "@types/mdx": "^2.0.14",
-    "next": "^16.3.0",
+    "next": "^16.3.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "remark-gfm": "^4.0.1"
