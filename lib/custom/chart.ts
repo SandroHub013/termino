@@ -93,13 +93,21 @@ export function sampleColumns(
   return cols;
 }
 
+/** Snaps a mantissa in `[1, 10)` to the nearest step people read easily. */
+function roundToNiceStep(norm: number): number {
+  if (norm < 1.5) return 1;
+  if (norm < 3) return 2;
+  if (norm < 7) return 5;
+  return 10;
+}
+
 export function niceTicks(min: number, max: number, count: number): number[] {
   const span = max - min;
   if (span === 0) return [min];
   const rough = span / Math.max(1, count);
   const mag = Math.pow(10, Math.floor(Math.log10(rough)));
   const norm = rough / mag;
-  const step = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
+  const step = roundToNiceStep(norm) * mag;
   const out: number[] = [];
   for (let v = Math.ceil(min / step) * step; v <= max + 1e-9; v += step) out.push(v);
   return out;
@@ -111,6 +119,13 @@ export const HALF_BLOCK = {
   bottom: "▄",
   both: "█",
 } as const;
+
+/** The block covering whichever halves of a cell the span reaches into. At
+ *  least one of `top` and `bottom` is expected to be true. */
+export function halfBlock(top: boolean, bottom: boolean): string {
+  if (top && bottom) return HALF_BLOCK.both;
+  return top ? HALF_BLOCK.top : HALF_BLOCK.bottom;
+}
 
 export interface Run {
   ch: string;
@@ -512,8 +527,11 @@ export function renderGauge(
   const cy = height - 1.3;
   const r = Math.max(1, Math.min(cx, cy - 0.6));
 
-  const zoneColor = (v: number) =>
-    v >= dangerAt ? dangerColor : v >= warnAt ? warnColor : color;
+  const zoneColor = (v: number) => {
+    if (v >= dangerAt) return dangerColor;
+    if (v >= warnAt) return warnColor;
+    return color;
+  };
 
   const rows: CursorCell[][] = [];
   for (let row = 0; row < height; row++) {
@@ -711,21 +729,15 @@ export function renderCandles(
       const pT = inBody(p);
       const pB = inBody(p + 1);
       if (pT || pB) {
-        row[col] = pT && pB
-          ? { ch: "█", fg: color }
-          : pT
-            ? { ch: "▀", fg: color }
-            : { ch: "▄", fg: color };
+        row[col] = { ch: halfBlock(pT, pB), fg: color };
         continue;
       }
       const wT = inWick(p);
       const wB = inWick(p + 1);
       if (wT || wB) {
-        row[col] = wT && wB
-          ? { ch: "│", fg: wick }
-          : wT
-            ? { ch: "▀", fg: wick }
-            : { ch: "▄", fg: wick };
+        // A wick that fills the whole cell draws as a line rather than a
+        // full block, so it stays thinner than the body next to it.
+        row[col] = { ch: wT && wB ? "│" : halfBlock(wT, wB), fg: wick };
       }
     }
     rows.push(row);

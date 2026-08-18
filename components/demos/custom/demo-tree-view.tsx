@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { C, R, Screen } from "@/lib/term";
+import { branchGlyph } from "@/lib/custom/tree-view";
 import { TerminalScreen } from "../../terminal";
 
 interface TNode {
@@ -24,11 +25,6 @@ const FILES: TNode[] = [
   { name: "package.json" },
   { name: "tsconfig.json" },
 ];
-
-function branchGlyph(expandable: boolean, isExpanded: boolean): string {
-  if (!expandable) return "·";
-  return isExpanded ? "▾" : "▸";
-}
 
 function rowColor(isSelected: boolean, expandable: boolean): string {
   if (isSelected) return C.yellow;
@@ -62,7 +58,7 @@ function collectExpanded(nodes: TNode[], base = "", out: string[] = []): string[
   return out;
 }
 
-export function DemoTreerView() {
+export function DemoTreeView() {
   const [selected, setSelected] = useState(0);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(collectExpanded(FILES)));
   const [picked, setPicked] = useState<string | null>(null);
