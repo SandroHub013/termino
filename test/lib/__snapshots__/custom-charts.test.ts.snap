@@ -1,0 +1,49 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`LiveLineChart > draws the series with its title and status 1`] = `
+"[LIVE] TELEMETRY                ▲ 14.00 (+6.00) 
+   15.6│┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈█┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+   13.7│                                      ●
+   11.8│             █                █        
+    9.9│┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+    8.1│    █                             █    
+    6.2│                 █       █             
+    4.3│┈┈┈┈┈┈┈┈█┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+    2.4│█                                      
+ RANGE: 3.00 - 15.00  │  SAMPLES: 10            "
+`;
+
+exports[`ProfitLossLine > draws a zero line and a titled frame 1`] = `
+" P&L                    +8.00 (+80.0%) 
+  +30.0│                               
+  +30.0│                    █████      
+  +20.0│          █████     ▀▀▀▀▀     █
+  +10.0│          ▀▀▀▀▀     ▀▀▀▀▀     ▀
+  +10.0│█████     ▀▀▀▀▀     ▀▀▀▀▀     ▀
+   +0.0┼▀▀▀▀▀▄▄▄▄▄▀▀▀▀▀▄▄▄▄▄▀▀▀▀▀█████▀
+  -10.0│     █████     ▄▄▄▄▄           
+  -10.0│               █████           
+       │                               "
+`;
+
+exports[`SankeyFlow > draws a stable diagram 1`] = `
+" FLOW                                                       
+SOURCES                                          ALLOCATIONS
+ █  ads ($60k - 52%)    ══════5════▶signups ($100k - 87%) █ 
+ █  organic ($55k - 48%)══════3════▶churn ($15k - 13%)    █ 
+                        ══════1════▶                        "
+`;
+
+exports[`WaterfallChart > draws a titled grid of bars 1`] = `
+" BALANCE                                
+│         │▀▀▀▀▀▀▀││▀▀▀▀▀▀▀│         │
+│         │███████││███████│         │
+││▀▀▀▀▀▀▀││▄▄▄▄▄▄▄││▄▄▄▄▄▄▄││▀▀▀▀▀▀▀││
+││███████│                  │███████││
+││███████│                  │███████││
+││███████│                  │███████││
+││███████│                  │███████││
+││▄▄▄▄▄▄▄│                  │▄▄▄▄▄▄▄││
+ +120     +45      -30      135      
+ open     sales    refund   close    "
+`;

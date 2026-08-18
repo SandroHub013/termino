@@ -22,6 +22,12 @@ export default defineConfig({
       // OpenTUI (terminal-host) components cannot mount in jsdom, and the
       // barrel that re-exports them resolves only through a bundler. The pure
       // rendering functions they call are covered directly instead.
+      //
+      // The components that use no hooks are also tested directly — calling
+      // one returns the `Canvas` element whose `rows` prop is the grid it
+      // would paint — see `test/lib/custom-charts.test.ts`. Those runs do not
+      // show up in this report, which measures only what it can instrument
+      // without a terminal host.
       exclude: [
         "lib/custom/*.tsx",
         "lib/custom/index.ts",
