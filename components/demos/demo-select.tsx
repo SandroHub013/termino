@@ -82,6 +82,8 @@ export function DemoSelect() {
   return (
     <div
       ref={ref}
+      role="listbox"
+      aria-label="Select demo: arrow keys to move, enter to select"
       tabIndex={0}
       onKeyDown={onKey}
       onFocus={() => setFocused(true)}

@@ -66,6 +66,11 @@ export function DemoGrid() {
   return (
     <div
       ref={ref}
+      role="spinbutton"
+      aria-label="Grid demo: left and right arrows change the column count"
+      aria-valuenow={cols}
+      aria-valuemin={1}
+      aria-valuemax={4}
       tabIndex={0}
       onKeyDown={onKey}
       onFocus={() => setFocused(true)}

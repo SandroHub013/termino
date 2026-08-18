@@ -79,6 +79,8 @@ export function DemoInput() {
   return (
     <div
       ref={ref}
+      role="textbox"
+      aria-label="Input demo: type to edit the value, backspace to delete"
       tabIndex={0}
       onKeyDown={onKey}
       onFocus={() => setFocused(true)}
