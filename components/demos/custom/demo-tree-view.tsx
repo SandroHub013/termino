@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import { C, R, Screen } from "@/lib/term";
-import { branchGlyph } from "@/lib/custom/tree-view";
 import { TerminalScreen } from "../../terminal";
 
 interface TNode {
@@ -25,6 +24,15 @@ const FILES: TNode[] = [
   { name: "package.json" },
   { name: "tsconfig.json" },
 ];
+
+/** Marker at the head of a row: a caret that points down when the branch is
+ *  open and right when it is closed, or a dot for a leaf. Deliberately a copy
+ *  of the one in `lib/custom/tree-view`: importing it would pull @opentui/react
+ *  into the browser bundle, and OpenTUI has no browser build. */
+function branchGlyph(expandable: boolean, isExpanded: boolean): string {
+  if (!expandable) return "·";
+  return isExpanded ? "▾" : "▸";
+}
 
 function rowColor(isSelected: boolean, expandable: boolean): string {
   if (isSelected) return C.yellow;
