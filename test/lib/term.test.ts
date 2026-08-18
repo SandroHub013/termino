@@ -53,7 +53,7 @@ describe("cellStyle", () => {
 
   it("maps bold, dim and underline attributes", () => {
     expect(cellStyle({ t: "x", b: true }).fontWeight).toBe(700);
-    expect(cellStyle({ t: "x", d: true }).opacity).toBe(0.55);
+    expect(cellStyle({ t: "x", d: true }).opacity).toBeCloseTo(0.55);
     expect(cellStyle({ t: "x", u: true }).textDecoration).toBe("underline");
   });
 

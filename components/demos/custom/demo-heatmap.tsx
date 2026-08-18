@@ -9,6 +9,9 @@ const ROWS = 7;
 const COLS = 10;
 const COLSET = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s0"];
 
+const jitter = (v: number) => Math.max(0, Math.min(100, v + (Math.random() * 30 - 15)));
+const drift = (matrix: number[][]) => matrix.map((row) => row.map(jitter));
+
 function randomMatrix(): number[][] {
   return Array.from({ length: ROWS }, () =>
     Array.from({ length: COLS }, () => Math.random() * 100),
@@ -19,11 +22,7 @@ export function DemoHeatmap() {
   const [matrix, setMatrix] = useState<number[][]>(randomMatrix);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setMatrix((prev) =>
-        prev.map((row) => row.map((v) => Math.max(0, Math.min(100, v + (Math.random() * 30 - 15))))),
-      );
-    }, 400);
+    const timer = setInterval(() => setMatrix(drift), 400);
     return () => clearInterval(timer);
   }, []);
 
