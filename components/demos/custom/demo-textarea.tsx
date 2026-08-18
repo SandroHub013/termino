@@ -111,6 +111,9 @@ export function DemoTextarea() {
   return (
     <div
       ref={ref}
+      role="textbox"
+      aria-multiline="true"
+      aria-label="Textarea demo: type to edit, arrow keys to move the caret"
       tabIndex={0}
       onKeyDown={onKey}
       onFocus={() => setFocused(true)}

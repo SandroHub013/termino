@@ -58,6 +58,11 @@ export function DemoSlider() {
 
   return (
     <div
+      role="slider"
+      aria-label="Slider demo: arrow keys to adjust, home and end for the extremes"
+      aria-valuenow={value}
+      aria-valuemin={MIN}
+      aria-valuemax={MAX}
       tabIndex={0}
       onKeyDown={onKey}
       onFocus={() => setFocused(true)}

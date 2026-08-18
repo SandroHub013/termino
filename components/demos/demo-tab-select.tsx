@@ -61,6 +61,8 @@ export function DemoTabSelect() {
   return (
     <div
       ref={ref}
+      role="tablist"
+      aria-label="Tab select demo: left and right arrows to switch tab"
       tabIndex={0}
       onKeyDown={onKey}
       onFocus={() => setFocused(true)}
