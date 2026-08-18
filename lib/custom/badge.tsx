@@ -18,7 +18,7 @@ export interface BadgeProps {
   prefix?: string;
 }
 
-export function Badge({ label, tone = "blue", prefix = "" }: BadgeProps) {
+export function Badge({ label, tone = "blue", prefix = "" }: Readonly<BadgeProps>) {
   const t = TONES[tone];
   return h(
     "box",

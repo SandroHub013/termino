@@ -24,7 +24,7 @@ export function ScatterChart({
   maxY,
   gridlines,
   legend,
-}: ScatterChartProps) {
+}: Readonly<ScatterChartProps>) {
   const rows = useMemo(
     () =>
       renderScatter(series, width, height, {

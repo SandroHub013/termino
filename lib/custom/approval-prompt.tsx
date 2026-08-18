@@ -20,7 +20,7 @@ export function ApprovalPrompt({
   focused = true,
   color = "#f0c674",
   colors,
-}: ApprovalPromptProps) {
+}: Readonly<ApprovalPromptProps>) {
   const c = { ...NEO, ...colors };
   const [sel, setSel] = useState<"y" | "n">("y");
 

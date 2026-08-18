@@ -23,7 +23,7 @@ export function SankeyFlow({
   title = "Resource & Revenue Flow",
   sourceTitle = "SOURCES",
   targetTitle = "ALLOCATIONS",
-}: SankeyFlowProps) {
+}: Readonly<SankeyFlowProps>) {
   if (flows.length === 0) return null;
 
   // Extract unique sources and targets

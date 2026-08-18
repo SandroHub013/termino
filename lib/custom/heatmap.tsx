@@ -24,7 +24,7 @@ export function Heatmap({
   cellWidth,
   legend,
   legendWidth,
-}: HeatmapProps) {
+}: Readonly<HeatmapProps>) {
   const rows = useMemo(
     () =>
       renderHeatmap(data, {

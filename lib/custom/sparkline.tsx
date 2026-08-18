@@ -40,7 +40,7 @@ export function Sparkline({
   reveal = 1,
   loading = false,
   dot = true,
-}: SparklineProps) {
+}: Readonly<SparklineProps>) {
   const window = useMemo(() => data.slice(-width), [data, width]);
   const sweep = useSweep(loading, width);
 

@@ -20,7 +20,7 @@ export function Modal({
   width = 46,
   height = 10,
   borderColor = "#7aa2f7",
-}: ModalProps) {
+}: Readonly<ModalProps>) {
   const panelRef = useRef<BoxRenderable | null>(null);
 
   useKeyboard((key) => {

@@ -200,8 +200,8 @@ describe("renderGauge", () => {
   it("moves the needle monotonically with the value", () => {
     const needleColumn = (value: number) => {
       const rows = renderGauge(value, 0, 100, 25, 9, { showTicks: false });
-      for (let r = 0; r < rows.length; r++) {
-        const c = (rows[r] ?? []).findIndex((cell) => cell.ch === "▌");
+      for (const row of rows) {
+        const c = row.findIndex((cell) => cell.ch === "▌");
         if (c >= 0) return c;
       }
       return -1;

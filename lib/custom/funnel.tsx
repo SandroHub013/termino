@@ -16,7 +16,7 @@ export function FunnelChart({
   showPercent,
   baseColor,
   endColor,
-}: FunnelChartProps) {
+}: Readonly<FunnelChartProps>) {
   const rows = useMemo(
     () => renderFunnel(stages, width, { showPercent, baseColor, endColor }),
     [stages, width, showPercent, baseColor, endColor],

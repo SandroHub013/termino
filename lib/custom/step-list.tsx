@@ -24,7 +24,7 @@ export function StepList({
   steps = [],
   color = "#a5d98f",
   colors,
-}: StepListProps) {
+}: Readonly<StepListProps>) {
   const c = { ...NEO, ...colors };
   const running = steps.some((s) => s.state === "running");
   const [frame, setFrame] = useState(0);

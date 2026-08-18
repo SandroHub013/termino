@@ -31,7 +31,7 @@ export function ProgressBar({
   percentColor = "#565f89",
   showPercent = true,
   variant = "blocks",
-}: ProgressBarProps) {
+}: Readonly<ProgressBarProps>) {
   const clamped = Math.max(0, Math.min(max, value));
   const pct = max === 0 ? 0 : Math.round((clamped / max) * 100);
   const filled = Math.max(0, Math.min(width, Math.round((pct / 100) * width)));

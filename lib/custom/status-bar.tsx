@@ -25,7 +25,7 @@ export function StatusBar({
   width = 62,
   color = "#7aa2f7",
   colors,
-}: StatusBarProps) {
+}: Readonly<StatusBarProps>) {
   const c = { ...NEO, ...colors };
   const rows = useMemo(() => {
     const inner: CursorCell[] = [];
