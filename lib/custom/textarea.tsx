@@ -1,5 +1,4 @@
-import { createElement as h } from "react";
-import { useState } from "react";
+import { createElement as h, useState } from "react";
 import { useKeyboard } from "@opentui/react";
 import type { KeyEvent } from "@opentui/core";
 
