@@ -31,16 +31,12 @@ jobs:
         env:
           CI: true
 
+      # `next build` exports to `out/`. `.lighthouserc.json` serves that
+      # directory and names the three pages to audit; the runner already has
+      # python3, so nothing extra is installed to serve static files.
       - name: Audit
         uses: treosh/lighthouse-ci-action@v12
         with:
-          # `next build` exports to `out/`; served statically, exactly as
-          # GitHub Pages serves it.
-          staticDistDir: ./out
-          urls: |
-            /index.html
-            /docs/components/index.html
-            /docs/custom/index.html
           configPath: ./.lighthouserc.json
           uploadArtifacts: true
           temporaryPublicStorage: true
