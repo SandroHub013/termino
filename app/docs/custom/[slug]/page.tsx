@@ -130,7 +130,7 @@ export default async function CustomPage({
         <>
           <h2 className="text-lg font-bold text-ink-050 mt-10 mb-3 flex items-center gap-2">
             <span className="text-term-cyan select-none">##</span>
-            Variants
+            <span>Variants</span>
           </h2>
           <div className="space-y-6">
             {meta.variants.map((v) => (
@@ -150,7 +150,7 @@ export default async function CustomPage({
 
       <h2 className="text-lg font-bold text-ink-050 mt-10 mb-3 flex items-center gap-2">
         <span className="text-term-cyan select-none">##</span>
-        API
+        <span>API</span>
       </h2>
       <p className="text-[13.5px] text-ink-200 my-3">{meta.api}</p>
 
@@ -158,7 +158,7 @@ export default async function CustomPage({
 
       <h2 className="text-lg font-bold text-ink-050 mt-10 mb-3 flex items-center gap-2">
         <span className="text-term-cyan select-none">##</span>
-        Keymap
+        <span>Keymap</span>
       </h2>
       <KeyTable keys={meta.keymap} />
 
@@ -166,7 +166,7 @@ export default async function CustomPage({
         <>
           <h2 className="text-lg font-bold text-ink-050 mt-10 mb-3 flex items-center gap-2">
             <span className="text-term-cyan select-none">##</span>
-            Notes
+            <span>Notes</span>
           </h2>
           <ul className="my-3 space-y-1.5 text-[13.5px] text-ink-200">
             {meta.notes.map((note) => (
@@ -181,7 +181,7 @@ export default async function CustomPage({
 
       <h2 className="text-lg font-bold text-ink-050 mt-10 mb-3 flex items-center gap-2">
         <span className="text-term-cyan select-none">##</span>
-        Source
+        <span>Source</span>
       </h2>
       <p className="text-[13.5px] text-ink-200 my-3">
         Real implementation — this is the code that runs in your terminal.
