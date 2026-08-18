@@ -1,0 +1,45 @@
+name: Dependency review
+
+on:
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly, so an advisory published against a dependency already on main is
+    # noticed without waiting for the next pull request.
+    - cron: "41 5 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    name: review added dependencies
+    # The action compares the base and head of a pull request; there is nothing
+    # for it to diff on a schedule.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
+
+  audit:
+    name: audit the installed tree
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      # Dependabot proposes upgrades; this states plainly whether anything
+      # currently installed is known-vulnerable, including transitively.
+      - name: npm audit
+        run: npm audit --audit-level=high
