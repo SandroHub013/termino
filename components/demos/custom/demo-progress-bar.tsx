@@ -36,7 +36,7 @@ function bar(value: number, color: string, variant: string) {
   ]);
 }
 
-export function DemoProgressBar({ variant = "blocks" }: { variant?: string }) {
+export function DemoProgressBar({ variant = "blocks" }: Readonly<{ variant?: string }>) {
   const [running, setRunning] = useState(true);
   const [v1, setV1] = useState(0);
   const [v2, setV2] = useState(0);

@@ -3,10 +3,10 @@ import { Screen, cellStyle } from "@/lib/term";
 export function TerminalScreen({
   screen,
   className = "",
-}: {
+}: Readonly<{
   screen: Screen;
   className?: string;
-}) {
+}>) {
   return (
     <div className={["bg-[#16161e] rounded-md overflow-hidden", className].join(" ")}>
       <div className="font-mono text-[13px] leading-[1.35]">
@@ -29,12 +29,12 @@ export function TerminalWindow({
   children,
   right,
   className = "",
-}: {
+}: Readonly<{
   title: string;
   children: React.ReactNode;
   right?: React.ReactNode;
   className?: string;
-}) {
+}>) {
   return (
     <div
       className={[

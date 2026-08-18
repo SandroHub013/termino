@@ -35,7 +35,7 @@ function qrToFullBlocks(matrix: QRMatrix, quiet: number): string[] {
   return out;
 }
 
-export function DemoQRCode({ variant = "half-block" }: { variant?: string }) {
+export function DemoQRCode({ variant = "half-block" }: Readonly<{ variant?: string }>) {
   const [idx, setIdx] = useState(0);
   const value = PAYLOADS[idx % PAYLOADS.length] ?? PAYLOADS[0];
   const qr = encodeQR(value);

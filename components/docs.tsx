@@ -7,7 +7,7 @@ export interface Prop {
   description: string;
 }
 
-export function PropsTable({ props }: { props: Prop[] }) {
+export function PropsTable({ props }: Readonly<{ props: Prop[] }>) {
   return (
     <div className="rounded-md border border-ink-600 overflow-hidden my-6">
       <div className="px-3 h-8 bg-ink-800 border-b border-ink-600 flex items-center text-[11px] uppercase tracking-wider text-term-cyan">
@@ -48,7 +48,7 @@ export function PropsTable({ props }: { props: Prop[] }) {
   );
 }
 
-export function KeyTable({ keys }: { keys: [string, string][] }) {
+export function KeyTable({ keys }: Readonly<{ keys: [string, string][] }>) {
   return (
     <TerminalWindow title="keymap" className="my-6">
       <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[13px]">

@@ -79,9 +79,9 @@ export async function generateMetadata({
 
 export default async function CustomPage({
   params,
-}: {
+}: Readonly<{
   params: Promise<{ slug: string }>;
-}) {
+}>) {
   const { slug } = await params;
   const meta = customComponents.find((c) => c.slug === slug);
   if (!meta) notFound();
