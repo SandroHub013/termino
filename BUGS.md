@@ -92,3 +92,34 @@ The sections are now keyed by `` `${section.path}/${section.label}` ``, which is
 unique by construction since the two trees have different route prefixes. The
 labels themselves still collide — that is intentional, and
 `test/components/sidebar.test.tsx` asserts both facts.
+
+### 4. Two conditionals returned the same value on both branches
+
+*Fixed in this branch, found by the GitRoll code-quality scan.*
+
+`demo-modal` dimmed the rows behind an open modal with:
+
+```ts
+fg: seg.fg === C.dim ? "#2f3449" : "#2f3449"
+```
+
+The test on the segment's own colour decided nothing — every segment took
+`#2f3449` either way. Whatever the two shades were meant to be, only one
+survived.
+
+`demo-scrollbox` picked its gutter glyph through two nested conditions whose
+branches were both `"┃"`, and the outer one could not be false: `visible` is
+`lines.slice(offset, offset + VIEW)`, so `i` is always inside `[0, VIEW)`.
+
+Both were collapsed to the value they already produced, so the rendering did
+not change. What went away is the suggestion that these vary.
+
+### 5. The QR demo could be focused but not activated
+
+*Fixed in this branch, found by the GitRoll code-quality scan.*
+
+`demo-qrcode` rotated its payload from `onClick` on a `tabIndex={0}` div with
+no role and no key handler, so a keyboard could tab to it and then do nothing.
+It is now a `role="button"` that answers to enter and space, and every other
+demo states what it is — textbox, listbox, tablist, slider, spinbutton, tree
+— and labels the keys it responds to.
