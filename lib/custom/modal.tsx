@@ -1,5 +1,4 @@
-import { createElement as h } from "react";
-import { useEffect, useRef } from "react";
+import { createElement as h, useEffect, useRef } from "react";
 import { useKeyboard } from "@opentui/react";
 import type { BoxRenderable } from "@opentui/core";
 

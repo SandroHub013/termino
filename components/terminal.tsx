@@ -1,5 +1,4 @@
-import { Screen } from "@/lib/term";
-import { cellStyle } from "@/lib/term";
+import { Screen, cellStyle } from "@/lib/term";
 
 export function TerminalScreen({
   screen,

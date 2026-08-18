@@ -1,5 +1,4 @@
-import { createElement as h } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { createElement as h, useEffect, useMemo, useState } from "react";
 import { useKeyboard } from "@opentui/react";
 import { Canvas } from "./canvas";
 import { cellsWidth, type CursorCell } from "./chart";

@@ -1,5 +1,4 @@
-import { createElement as h } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { createElement as h, useEffect, useMemo, useState } from "react";
 import { Canvas } from "./canvas";
 import { cellsWidth } from "./chart";
 import { NEO, SPIN, neoPanel, type NeoColors } from "./neo";

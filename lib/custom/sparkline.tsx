@@ -1,5 +1,4 @@
-import { createElement as h } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { createElement as h, useEffect, useMemo, useState } from "react";
 import { mergeRuns, mixColor } from "./chart";
 
 const BLOCKS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"] as const;
