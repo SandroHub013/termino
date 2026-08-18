@@ -47,78 +47,110 @@ export function LiveLineChart({
   const recentData = data.slice(-chartW);
   const xScale = linearScale(0, Math.max(1, recentData.length - 1), 0, chartW - 1);
 
-  const rows: CursorCell[][] = [];
+  const rows: CursorCell[][] = [
+    bannerRow(`[${statusText}] ${title}`, latestReading(currentVal, diff, isUp), width, {
+      pulseColor,
+      isUp,
+    }),
+  ];
 
-  // Top Telemetry Banner
-  const banner: CursorCell[] = [];
-  const statusStr = `[${statusText}] ${title}`;
-  const valStr = `${isUp ? "▲" : "▼"} ${currentVal.toFixed(2)} (${isUp ? "+" : ""}${diff.toFixed(2)})`;
-
-  for (let i = 0; i < width; i++) {
-    if (i < statusStr.length) {
-      const isLiveTag = i < 6;
-      banner.push({
-        ch: statusStr[i] ?? " ",
-        fg: isLiveTag ? pulseColor : "#f3f4f6",
-      });
-    } else if (i >= width - valStr.length - 1 && i < width - 1) {
-      const idx = i - (width - valStr.length - 1);
-      banner.push({
-        ch: valStr[idx] || " ",
-        fg: isUp ? "#22c55e" : "#ef4444",
-      });
-    } else {
-      banner.push({ ch: " ", fg: "#1f2937" });
-    }
-  }
-  rows.push(banner);
-
-  // Grid & Line
   for (let r = 0; r < chartH; r++) {
-    const row: CursorCell[] = [];
     const targetVal = padMax - (r / (chartH - 1)) * (padMax - padMin);
-
-    const lbl = targetVal.toFixed(1).padStart(tickLabelWidth - 1, " ");
-    for (let i = 0; i < tickLabelWidth - 1; i++) {
-      row.push({ ch: lbl[i] || " ", fg: "#6b7280" });
-    }
-    row.push({ ch: "│", fg: gridColor });
-
-    for (let c = 0; c < chartW; c++) {
-      const isGridLine = r % 3 === 0;
-      row.push({ ch: isGridLine ? "┈" : " ", fg: isGridLine ? "#1f2937" : "#111827" });
-    }
-    rows.push(row);
+    rows.push(gridRow(targetVal, r, tickLabelWidth, chartW, gridColor));
   }
 
-  // Draw streaming data points
-  for (let i = 0; i < recentData.length; i++) {
-    const v = recentData[i];
-    if (v === undefined) continue;
-    const c = Math.round(xScale.to(i));
-    const rLine = Math.round(clamp(yScale.to(v), 0, chartH - 1));
-    const cellCol = tickLabelWidth + c;
+  // The plot starts one row down, under the banner.
+  plotStream(rows, recentData, {
+    offset: 1,
+    chartH,
+    width,
+    tickLabelWidth,
+    xScale,
+    yScale,
+    lineColor,
+    pulseColor,
+  });
 
-    const isLatest = i === recentData.length - 1;
-    const ch = isLatest ? "●" : "█";
-    const fg = isLatest ? pulseColor : mixColor(lineColor, "#ffffff", i / recentData.length);
-
-    const targetRow = rLine >= 0 && rLine < chartH ? rows[rLine + 1] : undefined;
-    if (targetRow && cellCol < width) {
-      targetRow[cellCol] = { ch, fg };
-    }
-  }
-
-  // Footer range stats
-  const footer: CursorCell[] = [];
-  const rangeStr = ` RANGE: ${minVal.toFixed(2)} - ${maxVal.toFixed(2)}  │  SAMPLES: ${data.length} `;
-  for (let i = 0; i < width; i++) {
-    footer.push({
-      ch: rangeStr[i] || " ",
-      fg: "#6b7280",
-    });
-  }
-  rows.push(footer);
+  const range = ` RANGE: ${minVal.toFixed(2)} - ${maxVal.toFixed(2)}  │  SAMPLES: ${data.length} `;
+  rows.push(Array.from({ length: width }, (_, i) => ({ ch: range[i] || " ", fg: "#6b7280" })));
 
   return h(Canvas, { rows, width });
+}
+
+/** The latest sample with its direction and the step that produced it. */
+function latestReading(current: number, diff: number, isUp: boolean): string {
+  return `${isUp ? "▲" : "▼"} ${current.toFixed(2)} (${isUp ? "+" : ""}${diff.toFixed(2)})`;
+}
+
+/** Status and title on the left, the current reading against the right edge.
+ *  The bracketed status tag takes the pulse colour. */
+function bannerRow(
+  status: string,
+  reading: string,
+  width: number,
+  style: { pulseColor: string; isUp: boolean },
+): CursorCell[] {
+  const readingStart = width - reading.length - 1;
+  return Array.from({ length: width }, (_, i) => {
+    if (i < status.length) {
+      return { ch: status[i] ?? " ", fg: i < 6 ? style.pulseColor : "#f3f4f6" };
+    }
+    if (i >= readingStart && i < width - 1) {
+      return { ch: reading[i - readingStart] || " ", fg: style.isUp ? "#22c55e" : "#ef4444" };
+    }
+    return { ch: " ", fg: "#1f2937" };
+  });
+}
+
+/** An empty plot row: its axis value, the axis, and a dotted rule every third
+ *  row. */
+function gridRow(
+  targetVal: number,
+  r: number,
+  tickLabelWidth: number,
+  chartW: number,
+  gridColor: string,
+): CursorCell[] {
+  const label = targetVal.toFixed(1).padStart(tickLabelWidth - 1, " ");
+  const ruled = r % 3 === 0;
+  return [
+    ...Array.from({ length: tickLabelWidth - 1 }, (_, i) => ({
+      ch: label[i] || " ",
+      fg: "#6b7280",
+    })),
+    { ch: "│", fg: gridColor },
+    ...Array.from({ length: chartW }, () => ({
+      ch: ruled ? "┈" : " ",
+      fg: ruled ? "#1f2937" : "#111827",
+    })),
+  ];
+}
+
+interface StreamStyle {
+  /** Rows above the plot, which the sample rows are offset by. */
+  offset: number;
+  chartH: number;
+  width: number;
+  tickLabelWidth: number;
+  xScale: { to: (v: number) => number };
+  yScale: { to: (v: number) => number };
+  lineColor: string;
+  pulseColor: string;
+}
+
+/** Plots the samples, brightening towards the right and marking the newest
+ *  one with the pulse. */
+function plotStream(rows: CursorCell[][], samples: number[], style: StreamStyle): void {
+  samples.forEach((v, i) => {
+    const rLine = Math.round(clamp(style.yScale.to(v), 0, style.chartH - 1));
+    const cellCol = style.tickLabelWidth + Math.round(style.xScale.to(i));
+    const row = rows[rLine + style.offset];
+    if (!row || cellCol >= style.width) return;
+
+    const isLatest = i === samples.length - 1;
+    row[cellCol] = {
+      ch: isLatest ? "●" : "█",
+      fg: isLatest ? style.pulseColor : mixColor(style.lineColor, "#ffffff", i / samples.length),
+    };
+  });
 }
