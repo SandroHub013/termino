@@ -1,0 +1,46 @@
+name: Lighthouse
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: accessibility and best practices
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Build the static site
+        run: npm run build
+        env:
+          CI: true
+
+      - name: Audit
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          # `next build` exports to `out/`; served statically, exactly as
+          # GitHub Pages serves it.
+          staticDistDir: ./out
+          urls: |
+            /index.html
+            /docs/components/index.html
+            /docs/custom/index.html
+          configPath: ./.lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
