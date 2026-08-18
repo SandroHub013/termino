@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { C, R, Screen } from "@/lib/term";
+import { C, R, rowBackground, Screen } from "@/lib/term";
 import { TerminalScreen } from "../terminal";
 
 const TABS = [
@@ -34,7 +34,7 @@ export function DemoTabSelect() {
   const tabWidth = 12;
   const tabRows: Screen["rows"] = TABS.map((tab, i) => {
     const isSel = i === index;
-    const bg = isSel ? "#334455" : focused ? "#1a1a1a" : "transparent";
+    const bg = rowBackground(isSel, focused);
     return R([
       { t: " ", bg },
       { t: tab.name.padEnd(tabWidth - 2), fg: isSel ? C.yellow : C.fg, bg, b: isSel },

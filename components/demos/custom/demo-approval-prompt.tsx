@@ -6,6 +6,11 @@ import { cursorRows } from "@/lib/custom/chart";
 import { NEO, neoPanel } from "@/lib/custom/neo";
 import { TerminalScreen } from "../../terminal";
 
+function resultLabel(answer: boolean | null): string | null {
+  if (answer === null) return null;
+  return answer ? "allowed ✓" : "denied ✗";
+}
+
 export function DemoApprovalPrompt() {
   const [answer, setAnswer] = useState<boolean | null>(null);
   const [cycle, setCycle] = useState(0);
@@ -36,7 +41,7 @@ export function DemoApprovalPrompt() {
     { ch: "   ←/→ select · enter confirm", fg: NEO.dim },
   ]);
 
-  const result = answer === null ? null : answer ? "allowed ✓" : "denied ✗";
+  const result = resultLabel(answer);
   const screen: Screen = {
     rows: [
       R([

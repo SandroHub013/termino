@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { C, R, Screen } from "@/lib/term";
+import { C, R, rowBackground, Screen } from "@/lib/term";
 import { TerminalScreen } from "../terminal";
 
 const OPTIONS = [
@@ -47,7 +47,7 @@ export function DemoSelect() {
       return;
     }
     const isSel = i === index;
-    const bg = isSel ? "#334455" : focused ? "#1a1a1a" : "transparent";
+    const bg = rowBackground(isSel, focused);
     const fg = isSel ? C.yellow : C.fg;
     const marker = isSel ? "▸" : " ";
     rows.push(
