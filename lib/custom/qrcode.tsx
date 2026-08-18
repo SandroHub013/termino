@@ -18,7 +18,7 @@ export function QRCode({
   fg = "#9ece6a",
   bg = "#1a1b26",
   quiet = 2,
-}: QRCodeProps) {
+}: Readonly<QRCodeProps>) {
   const matrix: QRMatrix | null = useMemo(() => {
     try {
       return encodeQR(value);

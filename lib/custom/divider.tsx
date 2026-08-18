@@ -14,7 +14,7 @@ export function Divider({
   labelColor = "#565f89",
   style = "single",
   paddingX = 1,
-}: DividerProps) {
+}: Readonly<DividerProps>) {
   const line = h("box", {
     style: { flexGrow: 1, border: ["top"], borderStyle: style, borderColor: color },
   });

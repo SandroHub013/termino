@@ -376,7 +376,7 @@ function penalty(modules: Uint8Array, size: number): number {
   }
 
   let darkCount = 0;
-  for (let i = 0; i < modules.length; i++) darkCount += modules[i] ?? 0;
+  for (const bit of modules) darkCount += bit;
   const ratio = (darkCount * 100) / (size * size);
   const deviation = Math.abs(ratio - 50);
   score += Math.floor(deviation / 5) * 10;

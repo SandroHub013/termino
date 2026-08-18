@@ -47,7 +47,7 @@ export function TreeView({
   indent = 2,
   selectedBackgroundColor = "#334455",
   selectedTextColor = "#e0af68",
-}: TreeViewProps) {
+}: Readonly<TreeViewProps>) {
   const [selected, setSelected] = useState(0);
   const [expanded, setExpanded] = useState<Set<string>>(
     () => new Set(collectExpanded(nodes)),

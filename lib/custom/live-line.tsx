@@ -22,7 +22,7 @@ export function LiveLineChart({
   pulseColor = "#22c55e",
   gridColor = "#374151",
   statusText = "LIVE • 100ms",
-}: LiveLineChartProps) {
+}: Readonly<LiveLineChartProps>) {
   if (data.length === 0) return null;
 
   const yVals = data;

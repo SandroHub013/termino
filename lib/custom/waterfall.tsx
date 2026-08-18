@@ -26,7 +26,7 @@ export function WaterfallChart({
   positiveColor = "#22c55e",
   negativeColor = "#ef4444",
   totalColor = "#3b82f6",
-}: WaterfallChartProps) {
+}: Readonly<WaterfallChartProps>) {
   if (items.length === 0) return null;
 
   // Calculate cumulative balances for floating bars
@@ -43,9 +43,7 @@ export function WaterfallChart({
   let minVal = 0;
   let maxVal = 0;
 
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    if (!item) continue;
+  for (const item of items) {
     if (item.isTotal) {
       const start = 0;
       const end = currentRunning;
@@ -104,9 +102,7 @@ export function WaterfallChart({
     const row: CursorCell[] = [];
     row.push({ ch: "│", fg: "#374151" });
 
-    for (let b = 0; b < bars.length; b++) {
-      const bar = bars[b];
-      if (!bar) continue;
+    for (const bar of bars) {
       const rStart = Math.round(clamp(yScale.to(bar.start), 0, chartH - 1));
       const rEnd = Math.round(clamp(yScale.to(bar.end), 0, chartH - 1));
 
@@ -138,9 +134,7 @@ export function WaterfallChart({
   // Value labels row
   const valRow: CursorCell[] = [];
   valRow.push({ ch: " ", fg: "#374151" });
-  for (let b = 0; b < bars.length; b++) {
-    const bar = bars[b];
-    if (!bar) continue;
+  for (const bar of bars) {
     const valStr = (bar.isTotal ? "" : bar.isPos ? "+" : "") + bar.value.toFixed(0);
     const color = bar.isTotal ? totalColor : bar.isPos ? positiveColor : negativeColor;
 
@@ -156,9 +150,7 @@ export function WaterfallChart({
   // Category labels row
   const lblRow: CursorCell[] = [];
   lblRow.push({ ch: " ", fg: "#374151" });
-  for (let b = 0; b < bars.length; b++) {
-    const bar = bars[b];
-    if (!bar) continue;
+  for (const bar of bars) {
     const shortLbl = bar.label.slice(0, colWidth - 1);
     for (let w = 0; w < colWidth; w++) {
       lblRow.push({

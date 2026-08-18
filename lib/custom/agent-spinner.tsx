@@ -45,7 +45,7 @@ export function AgentSpinner({
   elapsed = true,
   frames = SPIN,
   colors,
-}: AgentSpinnerProps) {
+}: Readonly<AgentSpinnerProps>) {
   const c = { ...NEO, ...colors };
   const [frame, setFrame] = useState(0);
   const active = running && frames.length > 1;

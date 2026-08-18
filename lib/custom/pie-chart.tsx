@@ -9,7 +9,7 @@ export interface PieChartProps {
   legend?: boolean;
 }
 
-export function PieChart({ data, width = 21, height = 11, legend = true }: PieChartProps) {
+export function PieChart({ data, width = 21, height = 11, legend = true }: Readonly<PieChartProps>) {
   const rows = useMemo(
     () => renderDonut(data, width, height, { innerRatio: 0, legend }),
     [data, width, height, legend],

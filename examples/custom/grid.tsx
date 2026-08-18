@@ -3,7 +3,7 @@ import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
 import { Divider, Grid } from "../../lib/custom";
 
-function Cell({ title, fg }: { title: string; fg: string }) {
+function Cell({ title, fg }: Readonly<{ title: string; fg: string }>) {
   return (
     <box border borderStyle="rounded" style={{ padding: 1, flexDirection: "column" }}>
       <text fg={fg}>{title}</text>
