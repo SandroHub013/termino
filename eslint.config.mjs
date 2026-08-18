@@ -18,7 +18,13 @@ const eslintConfig = defineConfig([
       "react/jsx-child-element-spacing": "error",
       "react/no-unknown-property": "error",
       "jsx-a11y/click-events-have-key-events": "error",
-      "jsx-a11y/no-noninteractive-tabindex": "error",
+      // `application` is the role for a composite widget that handles its own
+      // keys and does not expose its internals — which is what the select,
+      // tab-select and tree-view demos are. `listbox`, `tablist` and `tree`
+      // would each be a lie: axe's `aria-required-children` fails them,
+      // because the terminal screen underneath renders styled spans, not
+      // `option`, `tab` or `treeitem` elements.
+      "jsx-a11y/no-noninteractive-tabindex": ["error", { roles: ["application"] }],
       "jsx-a11y/no-static-element-interactions": "error",
       "@typescript-eslint/prefer-for-of": "error",
 
