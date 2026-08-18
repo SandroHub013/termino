@@ -49,6 +49,81 @@ function valuePrefix(bar: Bar): string {
   return bar.isPos ? "+" : "";
 }
 
+/** One bar's slice of a chart row: solid where the bar covers this row, blank
+ *  where it does not. */
+function barRowCells(
+  bar: Bar,
+  r: number,
+  chartH: number,
+  colWidth: number,
+  yScale: { to: (v: number) => number },
+  color: string,
+): CursorCell[] {
+  const rStart = Math.round(clamp(yScale.to(bar.start), 0, chartH - 1));
+  const rEnd = Math.round(clamp(yScale.to(bar.end), 0, chartH - 1));
+  const rTop = Math.min(rStart, rEnd);
+  const rBot = Math.max(rStart, rEnd);
+
+  if (r < rTop || r > rBot) {
+    return Array.from({ length: colWidth }, () => ({ ch: " ", fg: "#1f2937" }));
+  }
+  return Array.from({ length: colWidth }, (_, w) => ({
+    ch: barGlyph(w === 0 || w === colWidth - 1, r === rTop, r === rBot),
+    fg: color,
+  }));
+}
+
+/** A row under the plot with one string spread across each bar's columns. */
+function spreadRow(
+  bars: Bar[],
+  colWidth: number,
+  textOf: (bar: Bar) => string,
+  colorOf: (bar: Bar) => string,
+): CursorCell[] {
+  return [
+    { ch: " ", fg: "#374151" },
+    ...bars.flatMap((bar) => {
+      const text = textOf(bar);
+      const fg = colorOf(bar);
+      return Array.from({ length: colWidth }, (_, w) => ({ ch: text[w] || " ", fg }));
+    }),
+  ];
+}
+
+/**
+ * Turns the items into floating bars. Each movement spans from the running
+ * balance to where it leaves it; a total is anchored at zero and spans the
+ * balance reached so far, without advancing it.
+ */
+function toBars(items: WaterfallItem[]): Bar[] {
+  const bars: Bar[] = [];
+  let running = 0;
+  for (const item of items) {
+    if (item.isTotal) {
+      bars.push({
+        label: item.label,
+        value: running,
+        start: 0,
+        end: running,
+        isTotal: true,
+        isPos: running >= 0,
+      });
+      continue;
+    }
+    const start = running;
+    running += item.value;
+    bars.push({
+      label: item.label,
+      value: item.value,
+      start,
+      end: running,
+      isTotal: false,
+      isPos: item.value >= 0,
+    });
+  }
+  return bars;
+}
+
 export function WaterfallChart({
   items,
   width = 64,
@@ -60,43 +135,9 @@ export function WaterfallChart({
 }: Readonly<WaterfallChartProps>) {
   if (items.length === 0) return null;
 
-  // Calculate cumulative balances for floating bars
-  let currentRunning = 0;
-  const bars: Bar[] = [];
-
-  let minVal = 0;
-  let maxVal = 0;
-
-  for (const item of items) {
-    if (item.isTotal) {
-      const start = 0;
-      const end = currentRunning;
-      bars.push({
-        label: item.label,
-        value: currentRunning,
-        start,
-        end,
-        isTotal: true,
-        isPos: currentRunning >= 0,
-      });
-      minVal = Math.min(minVal, start, end);
-      maxVal = Math.max(maxVal, start, end);
-    } else {
-      const start = currentRunning;
-      const end = currentRunning + item.value;
-      currentRunning = end;
-      bars.push({
-        label: item.label,
-        value: item.value,
-        start,
-        end,
-        isTotal: false,
-        isPos: item.value >= 0,
-      });
-      minVal = Math.min(minVal, start, end);
-      maxVal = Math.max(maxVal, start, end);
-    }
-  }
+  const bars = toBars(items);
+  const minVal = Math.min(0, ...bars.flatMap((b) => [b.start, b.end]));
+  const maxVal = Math.max(0, ...bars.flatMap((b) => [b.start, b.end]));
 
   const span = maxVal - minVal || 1;
   const padMin = minVal < 0 ? minVal - span * 0.05 : 0;
@@ -108,82 +149,25 @@ export function WaterfallChart({
   const colWidth = Math.max(4, Math.floor((width - 4) / bars.length));
   const totalW = colWidth * bars.length + 4;
 
-  const rows: CursorCell[][] = [];
+  const colorOf = (bar: Bar) => barColor(bar, positiveColor, negativeColor, totalColor);
 
-  // Header title
-  const header: CursorCell[] = [];
   const titleStr = ` ${title} `;
-  for (let i = 0; i < totalW; i++) {
-    header.push({
-      ch: titleStr[i] ?? " ",
-      fg: "#f9fafb",
-    });
-  }
-  rows.push(header);
+  const rows: CursorCell[][] = [
+    Array.from({ length: totalW }, (_, i) => ({ ch: titleStr[i] ?? " ", fg: "#f9fafb" })),
+  ];
 
-  // Render chart rows
   for (let r = 0; r < chartH; r++) {
-    const row: CursorCell[] = [];
-    row.push({ ch: "│", fg: "#374151" });
-
-    for (const bar of bars) {
-      const rStart = Math.round(clamp(yScale.to(bar.start), 0, chartH - 1));
-      const rEnd = Math.round(clamp(yScale.to(bar.end), 0, chartH - 1));
-
-      const rTop = Math.min(rStart, rEnd);
-      const rBot = Math.max(rStart, rEnd);
-
-      const inBar = r >= rTop && r <= rBot;
-      const isTop = r === rTop;
-      const isBot = r === rBot;
-
-      const color = barColor(bar, positiveColor, negativeColor, totalColor);
-
-      for (let w = 0; w < colWidth; w++) {
-        if (inBar) {
-          const isEdge = w === 0 || w === colWidth - 1;
-          row.push({
-            ch: barGlyph(isEdge, isTop, isBot),
-            fg: color,
-          });
-        } else {
-          row.push({ ch: " ", fg: "#1f2937" });
-        }
-      }
-    }
-    row.push({ ch: "│", fg: "#374151" });
-    rows.push(row);
+    rows.push([
+      { ch: "│", fg: "#374151" },
+      ...bars.flatMap((bar) => barRowCells(bar, r, chartH, colWidth, yScale, colorOf(bar))),
+      { ch: "│", fg: "#374151" },
+    ]);
   }
 
-  // Value labels row
-  const valRow: CursorCell[] = [];
-  valRow.push({ ch: " ", fg: "#374151" });
-  for (const bar of bars) {
-    const valStr = valuePrefix(bar) + bar.value.toFixed(0);
-    const color = barColor(bar, positiveColor, negativeColor, totalColor);
-
-    for (let w = 0; w < colWidth; w++) {
-      valRow.push({
-        ch: valStr[w] || " ",
-        fg: color,
-      });
-    }
-  }
-  rows.push(valRow);
-
-  // Category labels row
-  const lblRow: CursorCell[] = [];
-  lblRow.push({ ch: " ", fg: "#374151" });
-  for (const bar of bars) {
-    const shortLbl = bar.label.slice(0, colWidth - 1);
-    for (let w = 0; w < colWidth; w++) {
-      lblRow.push({
-        ch: shortLbl[w] || " ",
-        fg: "#9ca3af",
-      });
-    }
-  }
-  rows.push(lblRow);
+  rows.push(spreadRow(bars, colWidth, (bar) => valuePrefix(bar) + bar.value.toFixed(0), colorOf));
+  rows.push(
+    spreadRow(bars, colWidth, (bar) => bar.label.slice(0, colWidth - 1), () => "#9ca3af"),
+  );
 
   return h(Canvas, { rows, width: totalW });
 }

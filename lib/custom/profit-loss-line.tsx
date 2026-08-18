@@ -69,105 +69,140 @@ export function ProfitLossLine({
 
   const zeroRow = Math.round(yScale.to(0));
 
-  // Initialize screen grid
   const rows: CursorCell[][] = [];
   for (let r = 0; r < chartH; r++) {
-    const row: CursorCell[] = [];
-
-    // Find y tick for label
+    // The value this row sits at, and the nearest tick close enough to label.
     const targetVal = padMax - (r / (chartH - 1)) * (padMax - padMin);
     const nearTick = yTicks.find((t) => Math.abs(t - targetVal) < span * 0.12);
-    const isZeroRow = r === zeroRow;
-
-    let lbl = "";
-    if (nearTick !== undefined) {
-      lbl = nearTick >= 0 ? `+${nearTick.toFixed(1)}` : nearTick.toFixed(1);
-    }
-    lbl = lbl.padStart(tickLabelWidth - 1, " ");
-
-    const labelFg = tickLabelColor(isZeroRow, nearTick !== undefined);
-
-    for (let i = 0; i < tickLabelWidth - 1; i++) {
-      row.push({ ch: lbl[i] || " ", fg: labelFg });
-    }
-    row.push({ ch: isZeroRow ? "┼" : "│", fg: gridColor });
-
-    // Chart grid cells
-    for (let c = 0; c < chartW; c++) {
-      if (isZeroRow) {
-        row.push({ ch: "─", fg: zeroColor });
-      } else {
-        row.push({ ch: " ", fg: "#1f2937" });
-      }
-    }
-    rows.push(row);
+    rows.push(
+      gridRow(nearTick, r === zeroRow, {
+        tickLabelWidth,
+        chartW,
+        gridColor,
+        zeroColor,
+      }),
+    );
   }
 
-  // Draw P&L line & fill
-  const colVals: (number | null)[] = new Array(chartW).fill(null);
+  drawSeries(rows, columnValues(pts, chartW, xScale), {
+    chartH,
+    zeroRow,
+    tickLabelWidth,
+    yScale,
+    profitColor,
+    lossColor,
+  });
+
+  const totalW = tickLabelWidth + chartW;
+  if (!showMetrics) return h(Canvas, { rows, width: totalW });
+
+  const header = metricsRow(title, netChange, netPct, totalW, profitColor, lossColor);
+  return h(Canvas, { rows: [header, ...rows], width: totalW });
+}
+
+interface GridStyle {
+  tickLabelWidth: number;
+  chartW: number;
+  gridColor: string;
+  zeroColor: string;
+}
+
+/** One empty chart row: its axis label, the axis itself, and either the zero
+ *  rule or blank plot area. */
+function gridRow(nearTick: number | undefined, isZeroRow: boolean, style: GridStyle): CursorCell[] {
+  const signed = nearTick === undefined ? "" : signedTick(nearTick);
+  const label = signed.padStart(style.tickLabelWidth - 1, " ");
+  const labelFg = tickLabelColor(isZeroRow, nearTick !== undefined);
+
+  return [
+    ...Array.from({ length: style.tickLabelWidth - 1 }, (_, i) => ({
+      ch: label[i] || " ",
+      fg: labelFg,
+    })),
+    { ch: isZeroRow ? "┼" : "│", fg: style.gridColor },
+    ...Array.from({ length: style.chartW }, () =>
+      isZeroRow ? { ch: "─", fg: style.zeroColor } : { ch: " ", fg: "#1f2937" },
+    ),
+  ];
+}
+
+/** Axis labels always carry their sign, so the zero line reads unambiguously
+ *  against the values above and below it. */
+function signedTick(value: number): string {
+  return value >= 0 ? `+${value.toFixed(1)}` : value.toFixed(1);
+}
+
+/**
+ * One value per plot column. Points land on their scaled column, and columns
+ * between two points hold the value of the last point before them, so the
+ * series reads as a step rather than a gap.
+ */
+function columnValues(
+  pts: { x: number; y: number }[],
+  chartW: number,
+  xScale: { to: (v: number) => number },
+): number[] {
+  const placed: (number | null)[] = new Array(chartW).fill(null);
   for (let i = 0; i < pts.length; i++) {
     const p = pts[i];
     const cx = Math.round(xScale.to(i));
-    if (p && cx >= 0 && cx < chartW) {
-      colVals[cx] = p.y;
-    }
+    if (p && cx >= 0 && cx < chartW) placed[cx] = p.y;
   }
 
-  // Interpolate missing columns
-  let lastV = pts[0]?.y ?? 0;
-  for (let c = 0; c < chartW; c++) {
-    if (colVals[c] === null) {
-      colVals[c] = lastV;
-    } else {
-      lastV = colVals[c]!;
-    }
-  }
+  let last = pts[0]?.y ?? 0;
+  return placed.map((v) => {
+    if (v !== null) last = v;
+    return last;
+  });
+}
 
-  for (let c = 0; c < chartW; c++) {
-    const val = colVals[c]!;
-    const rLine = Math.round(clamp(yScale.to(val), 0, chartH - 1));
-    const cellCol = tickLabelWidth + c;
+interface SeriesStyle {
+  chartH: number;
+  zeroRow: number;
+  tickLabelWidth: number;
+  yScale: { to: (v: number) => number };
+  profitColor: string;
+  lossColor: string;
+}
 
+/** Draws the line and shades the area between it and the zero row. */
+function drawSeries(rows: CursorCell[][], values: number[], style: SeriesStyle): void {
+  values.forEach((val, c) => {
+    const rLine = Math.round(clamp(style.yScale.to(val), 0, style.chartH - 1));
     const isPos = val >= 0;
-    const color = isPos ? profitColor : lossColor;
-    const dimColor = isPos
-      ? mixColor(profitColor, "#000000", 0.7)
-      : mixColor(lossColor, "#000000", 0.7);
+    const color = isPos ? style.profitColor : style.lossColor;
+    const shade = mixColor(color, "#000000", 0.7);
+    const cellCol = style.tickLabelWidth + c;
 
-    // Draw fill between line and zero
-    const rStart = Math.min(rLine, zeroRow);
-    const rEnd = Math.max(rLine, zeroRow);
-
-    for (let r = rStart; r <= rEnd; r++) {
-      const targetRow = r >= 0 && r < chartH ? rows[r] : undefined;
-      if (!targetRow) continue;
-      const isLineCell = r === rLine;
-      const ch = isLineCell ? "█" : shadeGlyph(isPos);
-      targetRow[cellCol] = {
-        ch,
-        fg: isLineCell ? color : dimColor,
-      };
+    for (let r = Math.min(rLine, style.zeroRow); r <= Math.max(rLine, style.zeroRow); r++) {
+      const row = rows[r];
+      if (!row) continue;
+      const onLine = r === rLine;
+      row[cellCol] = { ch: onLine ? "█" : shadeGlyph(isPos), fg: onLine ? color : shade };
     }
-  }
+  });
+}
 
-  // Optional top header row
-  const totalW = tickLabelWidth + chartW;
-  const isNetPos = netChange >= 0;
-  const netStr = `${isNetPos ? "+" : ""}${netChange.toFixed(2)} (${isNetPos ? "+" : ""}${netPct.toFixed(1)}%)`;
-
-  const headerCells: CursorCell[] = [];
+/** Title on the left, net change and percentage against the right edge. */
+function metricsRow(
+  title: string,
+  netChange: number,
+  netPct: number,
+  totalW: number,
+  profitColor: string,
+  lossColor: string,
+): CursorCell[] {
+  const up = netChange >= 0;
+  const sign = up ? "+" : "";
+  const net = `${sign}${netChange.toFixed(2)} (${sign}${netPct.toFixed(1)}%)`;
   const titleStr = ` ${title} `;
-  for (let i = 0; i < totalW; i++) {
-    if (i < titleStr.length) {
-      headerCells.push({ ch: titleStr[i] ?? " ", fg: "#f3f4f6" });
-    } else if (i >= totalW - netStr.length - 1 && i < totalW - 1) {
-      const idx = i - (totalW - netStr.length - 1);
-      headerCells.push({ ch: netStr[idx] || " ", fg: isNetPos ? profitColor : lossColor });
-    } else {
-      headerCells.push({ ch: " ", fg: "#374151" });
-    }
-  }
+  const netStart = totalW - net.length - 1;
 
-  const finalRows = showMetrics ? [headerCells, ...rows] : rows;
-  return h(Canvas, { rows: finalRows, width: totalW });
+  return Array.from({ length: totalW }, (_, i) => {
+    if (i < titleStr.length) return { ch: titleStr[i] ?? " ", fg: "#f3f4f6" };
+    if (i >= netStart && i < totalW - 1) {
+      return { ch: net[i - netStart] || " ", fg: up ? profitColor : lossColor };
+    }
+    return { ch: " ", fg: "#374151" };
+  });
 }

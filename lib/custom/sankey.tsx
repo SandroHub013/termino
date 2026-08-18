@@ -26,127 +26,135 @@ export function SankeyFlow({
 }: Readonly<SankeyFlowProps>) {
   if (flows.length === 0) return null;
 
-  // Extract unique sources and targets
   const sources = Array.from(new Set(flows.map((f) => f.source)));
   const targets = Array.from(new Set(flows.map((f) => f.target)));
-
-  // Calculate totals
-  const sourceTotals: Record<string, number> = {};
-  const targetTotals: Record<string, number> = {};
-  let totalVolume = 0;
-
-  for (const f of flows) {
-    sourceTotals[f.source] = (sourceTotals[f.source] || 0) + f.value;
-    targetTotals[f.target] = (targetTotals[f.target] || 0) + f.value;
-    totalVolume += f.value;
-  }
-
-  const palette = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#ec4899", "#06b6d4"];
+  const totals = flowTotals(flows);
 
   const colW = Math.floor((width - 12) / 2);
-  const flowBridgeW = width - (colW * 2);
+  const bridgeW = width - colW * 2;
 
-  const rows: CursorCell[][] = [];
+  const rows: CursorCell[][] = [
+    titleRow(` ${title} `, width),
+    columnTitleRow(sourceTitle, targetTitle, width),
+  ];
 
-  // Header row
-  const header: CursorCell[] = [];
-  const titleStr = ` ${title} `;
-  for (let i = 0; i < width; i++) {
-    if (i < titleStr.length) {
-      header.push({ ch: titleStr[i] ?? " ", fg: "#f9fafb" });
-    } else {
-      header.push({ ch: " ", fg: "#374151" });
-    }
-  }
-  rows.push(header);
-
-  // Column titles row
-  const subHeader: CursorCell[] = [];
-  for (let i = 0; i < width; i++) {
-    if (i < sourceTitle.length) {
-      subHeader.push({ ch: sourceTitle[i] ?? " ", fg: "#9ca3af" });
-    } else if (i >= width - targetTitle.length) {
-      const idx = i - (width - targetTitle.length);
-      subHeader.push({ ch: targetTitle[idx] || " ", fg: "#9ca3af" });
-    } else {
-      subHeader.push({ ch: " ", fg: "#1f2937" });
-    }
-  }
-  rows.push(subHeader);
-
-  // Render flow rows
   const maxRows = Math.max(sources.length, targets.length, flows.length);
-
   for (let r = 0; r < maxRows; r++) {
-    const row: CursorCell[] = [];
-
-    // Left Node (Source)
     const srcName = sources[r];
-    const srcVal = srcName ? sourceTotals[srcName] : null;
-    const srcPct = srcVal ? ((srcVal / totalVolume) * 100).toFixed(0) : "";
-    const srcColor = palette[r % palette.length];
-
-    let leftStr = "";
-    if (srcName) {
-      leftStr = `[█] ${srcName} ($${srcVal}k - ${srcPct}%)`;
-    }
-
-    for (let c = 0; c < colW; c++) {
-      if (srcName && c < 3) {
-        row.push({ ch: c === 1 ? "█" : " ", fg: srcColor });
-      } else if (srcName && c >= 4 && c - 4 < leftStr.length - 4) {
-        row.push({ ch: leftStr[c] || " ", fg: "#e5e7eb" });
-      } else {
-        row.push({ ch: " ", fg: "#374151" });
-      }
-    }
-
-    // Bridge / Flow lines
-    const flow = flows[r];
-    const flowColor = flow?.color || palette[r % palette.length] || "#7dcfff";
-    const flowPct = flow ? ((flow.value / totalVolume) * 100).toFixed(0) : "";
-
-    for (let b = 0; b < flowBridgeW; b++) {
-      if (!flow) {
-        row.push({ ch: " ", fg: "#1f2937" });
-      } else {
-        const isHead = b === flowBridgeW - 1;
-        const isMid = b === Math.floor(flowBridgeW / 2);
-        if (isHead) {
-          row.push({ ch: "▶", fg: flowColor });
-        } else if (isMid && flowBridgeW > 6) {
-          const tag = `${flowPct}%`;
-          row.push({ ch: tag[0] ?? "═", fg: "#f3f4f6" });
-        } else {
-          row.push({ ch: "═", fg: mixColor(flowColor, "#1f2937", 0.3) });
-        }
-      }
-    }
-
-    // Right Node (Target)
+    const srcVal = srcName ? totals.bySource[srcName] : null;
     const tgtName = targets[r];
-    const tgtVal = tgtName ? targetTotals[tgtName] : null;
-    const tgtPct = tgtVal ? ((tgtVal / totalVolume) * 100).toFixed(0) : "";
-    const tgtColor = palette[(r + 2) % palette.length];
+    const tgtVal = tgtName ? totals.byTarget[tgtName] : null;
+    const flow = flows[r];
 
-    let rightStr = "";
-    if (tgtName) {
-      rightStr = `${tgtName} ($${tgtVal}k - ${tgtPct}%) [█]`;
-    }
-
-    for (let c = 0; c < colW; c++) {
-      const charIdx = c;
-      if (tgtName && charIdx < rightStr.length - 4) {
-        row.push({ ch: rightStr[charIdx] || " ", fg: "#e5e7eb" });
-      } else if (tgtName && c >= colW - 3) {
-        row.push({ ch: c === colW - 2 ? "█" : " ", fg: tgtColor });
-      } else {
-        row.push({ ch: " ", fg: "#374151" });
-      }
-    }
-
-    rows.push(row);
+    rows.push([
+      ...sourceCells(
+        srcName,
+        srcName ? `[█] ${srcName} ($${srcVal}k - ${share(srcVal, totals.volume)}%)` : "",
+        PALETTE[r % PALETTE.length],
+        colW,
+      ),
+      ...bridgeCells(
+        flow,
+        bridgeW,
+        flow?.color || PALETTE[r % PALETTE.length] || "#7dcfff",
+        flow ? ((flow.value / totals.volume) * 100).toFixed(0) : "",
+      ),
+      ...targetCells(
+        tgtName,
+        tgtName ? `${tgtName} ($${tgtVal}k - ${share(tgtVal, totals.volume)}%) [█]` : "",
+        PALETTE[(r + 2) % PALETTE.length],
+        colW,
+      ),
+    ]);
   }
 
   return h(Canvas, { rows, width });
+}
+
+const PALETTE = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#ec4899", "#06b6d4"];
+
+interface FlowTotals {
+  bySource: Record<string, number>;
+  byTarget: Record<string, number>;
+  volume: number;
+}
+
+function flowTotals(flows: SankeyFlowLink[]): FlowTotals {
+  const bySource: Record<string, number> = {};
+  const byTarget: Record<string, number> = {};
+  let volume = 0;
+  for (const f of flows) {
+    bySource[f.source] = (bySource[f.source] || 0) + f.value;
+    byTarget[f.target] = (byTarget[f.target] || 0) + f.value;
+    volume += f.value;
+  }
+  return { bySource, byTarget, volume };
+}
+
+/** A node's share of the total, rounded, or blank when it carries nothing. */
+const share = (value: number | null | undefined, volume: number): string =>
+  value ? ((value / volume) * 100).toFixed(0) : "";
+
+function titleRow(text: string, width: number): CursorCell[] {
+  return Array.from({ length: width }, (_, i) =>
+    i < text.length ? { ch: text[i] ?? " ", fg: "#f9fafb" } : { ch: " ", fg: "#374151" },
+  );
+}
+
+/** Column headings pushed to opposite edges of the diagram. */
+function columnTitleRow(sourceTitle: string, targetTitle: string, width: number): CursorCell[] {
+  const targetStart = width - targetTitle.length;
+  return Array.from({ length: width }, (_, i) => {
+    if (i < sourceTitle.length) return { ch: sourceTitle[i] ?? " ", fg: "#9ca3af" };
+    if (i >= targetStart) return { ch: targetTitle[i - targetStart] || " ", fg: "#9ca3af" };
+    return { ch: " ", fg: "#1f2937" };
+  });
+}
+
+/** Source side: a colour swatch in the first three columns, then the label. */
+function sourceCells(
+  name: string | undefined,
+  label: string,
+  color: string | undefined,
+  colW: number,
+): CursorCell[] {
+  return Array.from({ length: colW }, (_, c) => {
+    if (!name) return { ch: " ", fg: "#374151" };
+    if (c < 3) return { ch: c === 1 ? "█" : " ", fg: color };
+    if (c >= 4 && c - 4 < label.length - 4) return { ch: label[c] || " ", fg: "#e5e7eb" };
+    return { ch: " ", fg: "#374151" };
+  });
+}
+
+/** Target side: the label first, with the swatch against the right edge. */
+function targetCells(
+  name: string | undefined,
+  label: string,
+  color: string | undefined,
+  colW: number,
+): CursorCell[] {
+  return Array.from({ length: colW }, (_, c) => {
+    if (!name) return { ch: " ", fg: "#374151" };
+    if (c < label.length - 4) return { ch: label[c] || " ", fg: "#e5e7eb" };
+    if (c >= colW - 3) return { ch: c === colW - 2 ? "█" : " ", fg: color };
+    return { ch: " ", fg: "#374151" };
+  });
+}
+
+/** The rule between the two columns: an arrowhead at the target end and, on a
+ *  wide enough bridge, the flow's share sitting in the middle. */
+function bridgeCells(
+  flow: SankeyFlowLink | undefined,
+  bridgeW: number,
+  color: string,
+  pct: string,
+): CursorCell[] {
+  return Array.from({ length: bridgeW }, (_, b) => {
+    if (!flow) return { ch: " ", fg: "#1f2937" };
+    if (b === bridgeW - 1) return { ch: "▶", fg: color };
+    if (b === Math.floor(bridgeW / 2) && bridgeW > 6) {
+      return { ch: `${pct}%`[0] ?? "═", fg: "#f3f4f6" };
+    }
+    return { ch: "═", fg: mixColor(color, "#1f2937", 0.3) };
+  });
 }
