@@ -86,7 +86,7 @@ export function DemoModal() {
         rows: [
           ...base.slice(0, 2),
           ...base.slice(2).map((row) =>
-            R(row.map((seg) => ({ ...seg, fg: seg.fg === C.dim ? "#2f3449" : "#2f3449", d: false }))),
+            R(row.map((seg) => ({ ...seg, fg: "#2f3449", d: false }))),
           ),
           R([]),
           ...modalRows,
