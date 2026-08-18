@@ -58,18 +58,10 @@ export function DemoScrollBox() {
 
   const visible = lines.slice(offset, offset + VIEW);
   const viewRows: Screen["rows"] = [
-    ...visible.map((r, i) => [
+    ...visible.map((r) => [
       ...r,
       { t: " ", fg: C.fg },
-      {
-        t:
-          offset + i < offset + VIEW && offset + i >= offset
-            ? offset + i >= offset + VIEW - 1
-              ? "┃"
-              : "┃"
-            : " ",
-        fg: "#414868",
-      },
+      { t: "┃", fg: "#414868" },
     ]),
   ];
 
