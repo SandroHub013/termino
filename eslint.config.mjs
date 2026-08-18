@@ -28,6 +28,11 @@ const eslintConfig = defineConfig([
       "jsx-a11y/no-static-element-interactions": "error",
       "@typescript-eslint/prefer-for-of": "error",
 
+      // `noUncheckedIndexedAccess` is on, so a non-null assertion is how the
+      // checker gets overruled here. Every one in the source was standing in
+      // for a guard the code already had; the rule keeps it that way.
+      "@typescript-eslint/no-non-null-assertion": "error",
+
       // The demos and charts use `Math.random` for shimmer, jitter and sample
       // data. Nothing here guards a secret, so a CSPRNG would buy nothing.
       "sonarjs/pseudo-random": "off",
@@ -41,6 +46,12 @@ const eslintConfig = defineConfig([
     // has nothing to say about them.
     files: ["examples/**/*.tsx"],
     rules: { "react/no-unknown-property": "off" },
+  },
+  {
+    // A test asserts what it has just rendered, so `querySelector(…)!` states
+    // a fact the test itself established rather than overruling the checker.
+    files: ["test/**/*.{ts,tsx}"],
+    rules: { "@typescript-eslint/no-non-null-assertion": "off" },
   },
   // Override default ignores of eslint-config-next.
   globalIgnores([

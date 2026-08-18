@@ -9,6 +9,7 @@ import {
   clamp,
   halfBlock,
   linearScale,
+  type ColumnSample,
   mergeRuns,
   mixColor,
   sampleColumns,
@@ -147,8 +148,10 @@ export function Chart({
   const [selected, setSelected] = useState<number | null>(null);
   const active = crosshair && selectedProp !== undefined ? selectedProp : selected;
 
-  const lo = min ?? (cols.length ? Math.min(...cols.filter(Boolean).map((c) => c!.value)) : 0);
-  const hi = max ?? (cols.length ? Math.max(...cols.filter(Boolean).map((c) => c!.value)) : 1);
+  // `sampleColumns` leaves a column null where no point landed on it.
+  const values = cols.filter((c): c is ColumnSample => c !== null).map((c) => c.value);
+  const lo = min ?? (cols.length ? Math.min(...values) : 0);
+  const hi = max ?? (cols.length ? Math.max(...values) : 1);
 
   const yScale = useMemo(
     () => linearScale(lo, hi === lo ? lo + 1 : hi, 0, height * 2 - 2),
