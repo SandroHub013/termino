@@ -29,7 +29,7 @@ export default function CustomIndex() {
       <div className="mb-10">
         <h1 className="text-2xl md:text-4xl font-bold text-ink-050 mb-3 flex items-center gap-3">
           <span className="text-term-magenta">▚</span>
-          Custom components
+          <span>Custom components</span>
         </h1>
         <p className="text-[13.5px] text-ink-200 max-w-2xl leading-relaxed">
           Built on <code className="text-term-yellow">@opentui/react</code> — composition
@@ -62,7 +62,7 @@ export default function CustomIndex() {
 
       <h2 className="text-lg font-bold text-ink-050 mt-12 mb-3 flex items-center gap-2">
         <span className="text-term-cyan select-none">##</span>
-        Usage pattern
+        <span>Usage pattern</span>
       </h2>
       <p className="text-[13.5px] text-ink-200 my-3">
         Components import like any React module. Stateful ones (Toast, Modal)

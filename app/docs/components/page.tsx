@@ -24,7 +24,7 @@ export default function ComponentsIndex() {
       <div className="mb-10">
         <h1 className="text-2xl md:text-4xl font-bold text-ink-050 mb-3 flex items-center gap-3">
           <span className="text-term-green">▚</span>
-          Components
+          <span>Components</span>
         </h1>
         <p className="text-[13.5px] text-ink-200 max-w-2xl leading-relaxed">
           Every OpenTUI component, rendered the way your terminal will render it.
