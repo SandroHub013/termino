@@ -94,9 +94,31 @@ export function encodeQR(text: string, maskPattern?: number): QRMatrix {
   }
   const [size, dataCW, ecCW] = spec;
 
-  const bitWriter: number[] = [];
+  const data = toDataCodewords(bytes, version, dataCW);
+  const ec = gfPolyMod([...data, ...new Array<number>(ecCW).fill(0)], genPoly(ecCW));
+  if (ec.length !== ecCW) throw new Error("EC length mismatch");
+
+  const alignPos = ALIGNMENT[version];
+  const modules = new Uint8Array(size * size);
+  drawFunctionPatterns(modules, size, alignPos);
+  placeCodewords(modules, size, [...data, ...ec], alignPos);
+
+  const mask = maskPattern ?? bestMaskFor(modules, size, alignPos);
+  const final = applyMask(modules, size, mask, alignPos);
+  drawFormat(final, size, mask, 1);
+
+  return { size, modules: final, version, mask };
+}
+
+/**
+ * The byte-mode bit stream — mode, length, payload — terminated and then
+ * padded with the alternating 0xEC/0x11 bytes the spec prescribes, packed
+ * into `dataCW` codewords.
+ */
+function toDataCodewords(bytes: number[], version: number, dataCW: number): number[] {
+  const bits: number[] = [];
   const pushBits = (value: number, count: number) => {
-    for (let i = count - 1; i >= 0; i--) bitWriter.push((value >> i) & 1);
+    for (let i = count - 1; i >= 0; i--) bits.push((value >> i) & 1);
   };
 
   pushBits(0b0100, 4); // byte mode
@@ -104,12 +126,11 @@ export function encodeQR(text: string, maskPattern?: number): QRMatrix {
   for (const b of bytes) pushBits(b, 8);
 
   const capacity = dataCW * 8;
-  const termStart = bitWriter.length;
-  for (let i = termStart; i < Math.min(capacity, termStart + 4); i++) {
-    bitWriter.push(0);
-  }
+  const termStart = bits.length;
+  for (let i = termStart; i < Math.min(capacity, termStart + 4); i++) bits.push(0);
+
   let padByte = 0xec;
-  while (bitWriter.length < capacity) {
+  while (bits.length < capacity) {
     pushBits(padByte, 8);
     padByte = padByte === 0xec ? 0x11 : 0xec;
   }
@@ -117,120 +138,144 @@ export function encodeQR(text: string, maskPattern?: number): QRMatrix {
   const data = new Array<number>(dataCW).fill(0);
   for (let i = 0; i < dataCW; i++) {
     let byte = 0;
-    for (let j = 0; j < 8; j++) byte = (byte << 1) | (bitWriter[i * 8 + j] ?? 0);
+    for (let j = 0; j < 8; j++) byte = (byte << 1) | (bits[i * 8 + j] ?? 0);
     data[i] = byte;
   }
+  return data;
+}
 
-  const generator = genPoly(ecCW);
-  const ec = gfPolyMod([...data, ...new Array<number>(ecCW).fill(0)], generator);
-  if (ec.length !== ecCW) throw new Error("EC length mismatch");
-
-  const modules = new Uint8Array(size * size);
-
-  const drawFinder = (cx: number, cy: number) => {
-    for (let r = -3; r <= 3; r++) {
-      for (let c = -3; c <= 3; c++) {
-        const d = Math.max(Math.abs(c), Math.abs(r));
-        const dark = d === 3 || d <= 1;
-        modules[(cy + r) * size + (cx + c)] = dark ? 1 : 0;
-      }
+/** A 7x7 finder: solid ring, one light ring, solid 3x3 core. */
+function drawFinder(modules: Uint8Array, size: number, cx: number, cy: number): void {
+  for (let r = -3; r <= 3; r++) {
+    for (let c = -3; c <= 3; c++) {
+      const ring = Math.max(Math.abs(c), Math.abs(r));
+      modules[(cy + r) * size + (cx + c)] = ring === 3 || ring <= 1 ? 1 : 0;
     }
-  };
+  }
+}
 
-  drawFinder(3, 3);
-  drawFinder(size - 4, 3);
-  drawFinder(3, size - 4);
+/** A 5x5 alignment mark: solid ring, one light ring, single dark centre. */
+function drawAlignment(modules: Uint8Array, size: number, cx: number, cy: number): void {
+  for (let r = -2; r <= 2; r++) {
+    for (let c = -2; c <= 2; c++) {
+      const ring = Math.max(Math.abs(c), Math.abs(r));
+      modules[(cy + r) * size + (cx + c)] = ring === 2 || ring === 0 ? 1 : 0;
+    }
+  }
+}
 
-  const setModule = (x: number, y: number, v: number) => {
-    modules[y * size + x] = v;
-  };
+function drawFunctionPatterns(modules: Uint8Array, size: number, alignPos?: number[]): void {
+  drawFinder(modules, size, 3, 3);
+  drawFinder(modules, size, size - 4, 3);
+  drawFinder(modules, size, 3, size - 4);
 
+  // Timing patterns: alternating modules along row and column 6.
   for (let i = 8; i < size - 8; i++) {
     const v = i % 2 === 0 ? 1 : 0;
-    setModule(i, 6, v);
-    setModule(6, i, v);
+    modules[6 * size + i] = v;
+    modules[i * size + 6] = v;
   }
-  setModule(8, size - 8, 1); // dark module
+  modules[(size - 8) * size + 8] = 1; // the always-dark module
 
-  const alignPos = ALIGNMENT[version];
-  if (alignPos) {
-    const drawAlign = (cx: number, cy: number) => {
-      for (let r = -2; r <= 2; r++) {
-        for (let c = -2; c <= 2; c++) {
-          const ring = Math.max(Math.abs(c), Math.abs(r)) === 2;
-          const core = Math.max(Math.abs(c), Math.abs(r)) === 0;
-          setModule(cx + c, cy + r, ring || core ? 1 : 0);
-        }
-      }
-    };
-    for (const y of alignPos) {
-      for (const x of alignPos) {
-        const onFinder = (x === 6 && y === 6) || (x === 6 && y === size - 7) || (x === size - 7 && y === 6);
-        if (!onFinder) drawAlign(x, y);
-      }
+  if (!alignPos) return;
+  for (const y of alignPos) {
+    for (const x of alignPos) {
+      if (!isFinderCentre(x, y, size)) drawAlignment(modules, size, x, y);
     }
   }
+}
 
-  const codewords = [...data, ...ec];
-  let bitIndex = 0;
+/** The data-carrying modules of one two-wide column, top to bottom or bottom
+ *  to top depending on which way the walk is currently going. */
+function columnModules(
+  col: number,
+  size: number,
+  upward: boolean,
+  alignPos?: number[],
+): number[] {
+  const out: number[] = [];
+  for (let i = 0; i < size; i++) {
+    const row = upward ? size - 1 - i : i;
+    for (const x of [col, col - 1]) {
+      if (x >= 0 && !isFunctionModule(x, row, size, alignPos)) out.push(row * size + x);
+    }
+  }
+  return out;
+}
+
+/**
+ * Every data module in the order the spec fills them: two-wide columns walked
+ * from the bottom right, alternating upwards and downwards, skipping the
+ * function patterns.
+ */
+function dataModuleOrder(size: number, alignPos?: number[]): number[] {
+  const order: number[] = [];
   let upward = true;
   for (let col = size - 1; col >= 1; col -= 2) {
+    // Column 6 is a timing pattern; the walk steps over it.
     if (col === 6) col--;
-    for (let i = 0; i < size; i++) {
-      const row = upward ? size - 1 - i : i;
-      for (let j = 0; j < 2; j++) {
-        const x = col - j;
-        if (x < 0) continue;
-        const isFunction =
-          (x < 9 && row < 9) ||
-          (x >= size - 8 && row < 9) ||
-          (x < 9 && row >= size - 8) ||
-          (x === 6 && row >= 8 && row <= size - 9) ||
-          (row === 6 && x >= 8 && x <= size - 9) ||
-          (alignPos !== undefined && isAlign(x, row, alignPos, size));
-        if (isFunction) continue;
-        if (bitIndex < codewords.length * 8) {
-          const byte = codewords[bitIndex >> 3] ?? 0;
-          const bit = (byte >> (7 - (bitIndex & 7))) & 1;
-          modules[row * size + x] = bit;
-          bitIndex++;
-        }
-      }
-    }
+    order.push(...columnModules(col, size, upward, alignPos));
     upward = !upward;
   }
+  return order;
+}
 
-  let bestMask = maskPattern;
-  if (bestMask === undefined) {
-    const MASK_COUNT = 8;
-    let bestScore = Infinity;
-    let found = 0;
-    for (let mask = 0; mask < MASK_COUNT; mask++) {
-      const masked = applyMask(modules, size, mask, alignPos);
-      const score = penalty(masked, size);
-      if (score < bestScore) {
-        bestScore = score;
-        found = mask;
-      }
-    }
-    bestMask = found;
+function placeCodewords(
+  modules: Uint8Array,
+  size: number,
+  codewords: number[],
+  alignPos?: number[],
+): void {
+  const order = dataModuleOrder(size, alignPos);
+  const bits = Math.min(order.length, codewords.length * 8);
+  for (let bit = 0; bit < bits; bit++) {
+    const byte = codewords[bit >> 3] ?? 0;
+    modules[order[bit] ?? 0] = (byte >> (7 - (bit & 7))) & 1;
   }
+}
 
-  const final = applyMask(modules, size, bestMask, alignPos);
-  drawFormat(final, size, bestMask, 1);
+/** The mask whose penalty score is lowest, ties going to the lower pattern. */
+function bestMaskFor(modules: Uint8Array, size: number, alignPos?: number[]): number {
+  let best = 0;
+  let bestScore = Infinity;
+  for (let mask = 0; mask < MASK_RULES.length; mask++) {
+    const score = penalty(applyMask(modules, size, mask, alignPos), size);
+    if (score < bestScore) {
+      bestScore = score;
+      best = mask;
+    }
+  }
+  return best;
+}
 
-  return { size, modules: final, version, mask: bestMask };
+/** Three of the alignment grid's intersections sit under a finder pattern and
+ *  carry no alignment pattern of their own. */
+function isFinderCentre(px: number, py: number, size: number): boolean {
+  return (px === 6 && py === 6) || (px === 6 && py === size - 7) || (px === size - 7 && py === 6);
 }
 
 function isAlign(x: number, y: number, positions: number[], size: number): boolean {
   for (const py of positions) {
     for (const px of positions) {
-      const onFinder = (px === 6 && py === 6) || (px === 6 && py === size - 7) || (px === size - 7 && py === 6);
-      if (!onFinder && Math.abs(x - px) <= 2 && Math.abs(y - py) <= 2) return true;
+      if (isFinderCentre(px, py, size)) continue;
+      if (Math.abs(x - px) <= 2 && Math.abs(y - py) <= 2) return true;
     }
   }
   return false;
 }
+
+/** The eight mask conditions of ISO/IEC 18004 §8.8.1, in order. A module is
+ *  inverted where its rule holds. */
+const MASK_RULES: readonly ((x: number, y: number) => boolean)[] = [
+  (x, y) => (x + y) % 2 === 0,
+  (_x, y) => y % 2 === 0,
+  (x) => x % 3 === 0,
+  (x, y) => (x + y) % 3 === 0,
+  (x, y) => (Math.floor(y / 2) + Math.floor(x / 3)) % 2 === 0,
+  (x, y) => ((x * y) % 2) + ((x * y) % 3) === 0,
+  (x, y) => (((x * y) % 2) + ((x * y) % 3)) % 2 === 0,
+  (x, y) => (((x + y) % 2) + ((x * y) % 3)) % 2 === 0,
+];
 
 function applyMask(
   modules: Uint8Array,
@@ -238,39 +283,15 @@ function applyMask(
   mask: number,
   alignPos?: number[],
 ): Uint8Array {
+  const inverts = MASK_RULES[mask];
   const out = modules.slice();
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      const idx = y * size + x;
       if (isFunctionModule(x, y, size, alignPos)) continue;
-      let invert = false;
-      switch (mask) {
-        case 0:
-          invert = (x + y) % 2 === 0;
-          break;
-        case 1:
-          invert = y % 2 === 0;
-          break;
-        case 2:
-          invert = x % 3 === 0;
-          break;
-        case 3:
-          invert = (x + y) % 3 === 0;
-          break;
-        case 4:
-          invert = (Math.floor(y / 2) + Math.floor(x / 3)) % 2 === 0;
-          break;
-        case 5:
-          invert = ((x * y) % 2) + ((x * y) % 3) === 0;
-          break;
-        case 6:
-          invert = (((x * y) % 2) + ((x * y) % 3)) % 2 === 0;
-          break;
-        case 7:
-          invert = (((x + y) % 2) + ((x * y) % 3)) % 2 === 0;
-          break;
+      if (inverts?.(x, y)) {
+        const idx = y * size + x;
+        out[idx] = out[idx] ? 0 : 1;
       }
-      if (invert) out[idx] = out[idx] ? 0 : 1;
     }
   }
   return out;
@@ -284,55 +305,53 @@ function isFunctionModule(
 ): boolean {
   const inFinder =
     (x < 9 && y < 9) || (x >= size - 8 && y < 9) || (x < 9 && y >= size - 8);
+  // Row and column 6 are the timing patterns.
   if (inFinder || x === 6 || y === 6) return true;
-  if (alignPos) {
-    for (const py of alignPos) {
-      for (const px of alignPos) {
-        const onFinder =
-          (px === 6 && py === 6) ||
-          (px === 6 && py === size - 7) ||
-          (px === size - 7 && py === 6);
-        if (!onFinder && Math.abs(x - px) <= 2 && Math.abs(y - py) <= 2) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
+  return alignPos !== undefined && isAlign(x, y, alignPos, size);
 }
 
-function penalty(modules: Uint8Array, size: number): number {
+/**
+ * Reads a module by its position along a line and the line's own index. Rows
+ * and columns differ only in which of the two is `x`, so every penalty rule
+ * that scans in one direction is written once and run twice.
+ */
+type LineReader = (line: number, offset: number) => number;
+
+const alongRows =
+  (modules: Uint8Array, size: number): LineReader =>
+  (y, x) =>
+    modules[y * size + x] ?? 0;
+
+const alongColumns =
+  (modules: Uint8Array, size: number): LineReader =>
+  (x, y) =>
+    modules[y * size + x] ?? 0;
+
+/** Rule 1: five or more modules of one colour in a row score 3, plus 1 for
+ *  each module past the fifth. */
+function runPenalty(size: number, at: LineReader): number {
   let score = 0;
-
-  for (let y = 0; y < size; y++) {
+  for (let line = 0; line < size; line++) {
     let run = 0;
     let prev: number | null = null;
-    for (let x = 0; x <= size; x++) {
-      const v = x < size ? modules[y * size + x] ?? 0 : null;
+    // One past the end flushes the final run, which never equals `prev`.
+    for (let offset = 0; offset <= size; offset++) {
+      const v = offset < size ? at(line, offset) : null;
       if (v === prev) {
         run++;
-      } else {
-        if (prev !== null && run >= 5) score += 3 + (run - 5);
-        run = 1;
-        prev = v;
+        continue;
       }
+      if (prev !== null && run >= 5) score += 3 + (run - 5);
+      run = 1;
+      prev = v;
     }
   }
-  for (let x = 0; x < size; x++) {
-    let run = 0;
-    let prev: number | null = null;
-    for (let y = 0; y <= size; y++) {
-      const v = y < size ? modules[y * size + x] ?? 0 : null;
-      if (v === prev) {
-        run++;
-      } else {
-        if (prev !== null && run >= 5) score += 3 + (run - 5);
-        run = 1;
-        prev = v;
-      }
-    }
-  }
+  return score;
+}
 
+/** Rule 2: every 2x2 block of one colour scores 3. */
+function blockPenalty(modules: Uint8Array, size: number): number {
+  let score = 0;
   for (let y = 0; y < size - 1; y++) {
     for (let x = 0; x < size - 1; x++) {
       const v = modules[y * size + x];
@@ -345,43 +364,40 @@ function penalty(modules: Uint8Array, size: number): number {
       }
     }
   }
+  return score;
+}
 
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size - 6; x++) {
-      const seq = [
-        modules[y * size + x],
-        modules[y * size + x + 1],
-        modules[y * size + x + 2],
-        modules[y * size + x + 3],
-        modules[y * size + x + 4],
-        modules[y * size + x + 5],
-        modules[y * size + x + 6],
-      ];
+/** Rule 3: each run that looks like a finder pattern scores 40. */
+function finderPenalty(size: number, at: LineReader): number {
+  let score = 0;
+  for (let line = 0; line < size; line++) {
+    for (let offset = 0; offset < size - 6; offset++) {
+      const seq = Array.from({ length: 7 }, (_, k) => at(line, offset + k));
       if (matchesFinderPattern(seq)) score += 40;
     }
   }
-  for (let x = 0; x < size; x++) {
-    for (let y = 0; y < size - 6; y++) {
-      const seq = [
-        modules[y * size + x],
-        modules[(y + 1) * size + x],
-        modules[(y + 2) * size + x],
-        modules[(y + 3) * size + x],
-        modules[(y + 4) * size + x],
-        modules[(y + 5) * size + x],
-        modules[(y + 6) * size + x],
-      ];
-      if (matchesFinderPattern(seq)) score += 40;
-    }
-  }
+  return score;
+}
 
+/** Rule 4: 10 points for every 5% the dark share strays from half. */
+function balancePenalty(modules: Uint8Array, size: number): number {
   let darkCount = 0;
   for (const bit of modules) darkCount += bit;
   const ratio = (darkCount * 100) / (size * size);
-  const deviation = Math.abs(ratio - 50);
-  score += Math.floor(deviation / 5) * 10;
+  return Math.floor(Math.abs(ratio - 50) / 5) * 10;
+}
 
-  return score;
+function penalty(modules: Uint8Array, size: number): number {
+  const byRow = alongRows(modules, size);
+  const byColumn = alongColumns(modules, size);
+  return (
+    runPenalty(size, byRow) +
+    runPenalty(size, byColumn) +
+    blockPenalty(modules, size) +
+    finderPenalty(size, byRow) +
+    finderPenalty(size, byColumn) +
+    balancePenalty(modules, size)
+  );
 }
 
 function matchesFinderPattern(seq: readonly (number | undefined)[]): boolean {
