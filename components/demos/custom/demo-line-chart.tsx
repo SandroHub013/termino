@@ -24,6 +24,73 @@ function mergeRuns(cells: Cell[]): { t: string; fg: string }[] {
   return out;
 }
 
+interface AreaShape {
+  data: number[];
+  lo: number;
+  span: number;
+  height: number;
+  color: string;
+  /** Columns past this are not drawn yet, which is how the reveal animates. */
+  limit: number;
+  /** Column the loading sweep is currently on, or null when it is not running. */
+  sweep: number | null;
+  /** Column under the crosshair, or null. */
+  sel: number | null;
+}
+
+/** The half block a column shows at this row, or a space where it does not
+ *  reach. */
+function areaGlyph(topFilled: boolean, bottomFilled: boolean): string {
+  if (topFilled && bottomFilled) return "█";
+  if (topFilled) return "▀";
+  if (bottomFilled) return "▄";
+  return " ";
+}
+
+/** While the sweep runs, the two columns it is on and just past are lightened
+ *  and the two behind it are dimmed; the rest keep the base colour. */
+function sweepColor(distance: number, color: string): string {
+  if (distance >= -2 && distance <= 0) return mixColor(color, "#ffffff", 0.45);
+  if (distance > 0 && distance <= 2) return mixColor(color, FILL, 0.2);
+  return color;
+}
+
+/** With no sweep running the fill darkens with distance below the line. */
+function depthColor(
+  pFloor: number,
+  r: number,
+  bottomFilled: boolean,
+  height: number,
+  color: string,
+): string {
+  const depth = pFloor - (bottomFilled ? r * 2 + 1 : r * 2);
+  return depth <= 0 ? color : mixColor(color, FILL, depth / (height * 2 - 2));
+}
+
+function areaCell(shape: AreaShape, r: number, c: number): Cell {
+  if (c > shape.limit) return { ch: " ", fg: shape.color };
+
+  const idx = Math.min(
+    shape.data.length - 1,
+    Math.round((c / (W - 1)) * (shape.data.length - 1)),
+  );
+  const v = shape.data[idx] ?? shape.lo;
+  const pFloor = Math.floor(((v - shape.lo) / shape.span) * (shape.height * 2 - 2));
+  const topFilled = r * 2 <= pFloor;
+  const bottomFilled = r * 2 + 1 <= pFloor;
+
+  const ch = areaGlyph(topFilled, bottomFilled);
+  if (ch === " ") return { ch, fg: shape.color };
+  if (c === shape.sel) return { ch, fg: C.fg };
+  return {
+    ch,
+    fg:
+      shape.sweep !== null
+        ? sweepColor(shape.sweep - c, shape.color)
+        : depthColor(pFloor, r, bottomFilled, shape.height, shape.color),
+  };
+}
+
 function areaRows(
   data: number[],
   height: number,
@@ -34,42 +101,20 @@ function areaRows(
 ): Screen["rows"] {
   const lo = Math.min(...data);
   const hi = Math.max(...data);
-  const span = hi - lo || 1;
-  const limit = reveal * (W - 1);
+  const shape: AreaShape = {
+    data,
+    lo,
+    span: hi - lo || 1,
+    height,
+    color,
+    limit: reveal * (W - 1),
+    sweep,
+    sel,
+  };
+
   const rows: Screen["rows"] = [];
   for (let r = 0; r < height; r++) {
-    const cells: Cell[] = [];
-    for (let c = 0; c < W; c++) {
-      const t = c / (W - 1);
-      const idx = Math.min(data.length - 1, Math.round(t * (data.length - 1)));
-      const v = data[idx] ?? lo;
-      const p = ((v - lo) / span) * (height * 2 - 2);
-      const pFloor = Math.floor(p);
-      const topF = r * 2 <= pFloor;
-      const botF = r * 2 + 1 <= pFloor;
-      let ch = " ";
-      let fg = color;
-      if (c > limit) {
-        cells.push({ ch, fg });
-        continue;
-      }
-      if (topF && botF) ch = "█";
-      else if (topF) ch = "▀";
-      else if (botF) ch = "▄";
-      if (sweep !== null && ch !== " ") {
-        const dist = sweep - c;
-        if (dist >= -2 && dist <= 0) {
-          fg = mixColor(color, "#ffffff", 0.45);
-        } else if (dist > 0 && dist <= 2) {
-          fg = mixColor(color, FILL, 0.2);
-        }
-      } else if (ch !== " ") {
-        const depth = pFloor - (botF ? r * 2 + 1 : r * 2);
-        fg = depth <= 0 ? color : mixColor(color, FILL, depth / (height * 2 - 2));
-      }
-      if (sel !== null && c === sel && ch !== " ") fg = C.fg;
-      cells.push({ ch, fg });
-    }
+    const cells = Array.from({ length: W }, (_, c) => areaCell(shape, r, c));
     rows.push(R(mergeRuns(cells).map((s) => ({ ...s }))));
   }
   return rows;

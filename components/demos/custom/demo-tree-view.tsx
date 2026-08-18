@@ -68,36 +68,58 @@ export function DemoTreeView() {
   const flat: Flat[] = [];
   flatten(FILES, expanded, 0, "", flat);
 
+  const expand = (path: string) => setExpanded((prev) => new Set(prev).add(path));
+
+  const collapse = (path: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.delete(path);
+      return next;
+    });
+
+  /** Left on an open branch closes it; anywhere else it walks to the parent. */
+  const goLeft = (item: Flat | undefined) => {
+    if (!item) return;
+    if (item.expandable && expanded.has(item.path)) {
+      collapse(item.path);
+      return;
+    }
+    const parent = item.path.split("/").slice(0, -1).join("/");
+    const idx = flat.findIndex((f) => f.path === parent);
+    if (idx >= 0) setSelected(idx);
+  };
+
+  const activate = (item: Flat) => {
+    if (item.expandable) {
+      if (expanded.has(item.path)) collapse(item.path);
+      else expand(item.path);
+    }
+    setPicked(item.path);
+  };
+
   const onKey = (e: React.KeyboardEvent) => {
     if (e.key === "Tab") return;
     e.preventDefault();
     const item = flat[selected];
-    if (e.key === "ArrowUp" || e.key === "k") setSelected((s) => Math.max(0, s - 1));
-    else if (e.key === "ArrowDown" || e.key === "j") setSelected((s) => Math.min(flat.length - 1, s + 1));
-    else if (e.key === "ArrowRight" || e.key === "l") {
-      if (item?.expandable) setExpanded((prev) => new Set(prev).add(item.path));
-    } else if (e.key === "ArrowLeft" || e.key === "h") {
-      if (item?.expandable && expanded.has(item.path)) {
-        setExpanded((prev) => {
-          const next = new Set(prev);
-          next.delete(item.path);
-          return next;
-        });
-      } else if (item) {
-        const parent = item.path.split("/").slice(0, -1).join("/");
-        const idx = flat.findIndex((f) => f.path === parent);
-        if (idx >= 0) setSelected(idx);
-      }
-    } else if (e.key === "Enter" && item) {
-      if (item.expandable) {
-        setExpanded((prev) => {
-          const next = new Set(prev);
-          if (next.has(item.path)) next.delete(item.path);
-          else next.add(item.path);
-          return next;
-        });
-      }
-      setPicked(item.path);
+    switch (e.key) {
+      case "ArrowUp":
+      case "k":
+        return setSelected((s) => Math.max(0, s - 1));
+      case "ArrowDown":
+      case "j":
+        return setSelected((s) => Math.min(flat.length - 1, s + 1));
+      case "ArrowRight":
+      case "l":
+        if (item?.expandable) expand(item.path);
+        return;
+      case "ArrowLeft":
+      case "h":
+        return goLeft(item);
+      case "Enter":
+        if (item) activate(item);
+        return;
+      default:
+        return;
     }
   };
 

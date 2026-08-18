@@ -21,63 +21,96 @@ export function DemoTextarea() {
 
   const setValue = (next: string[]) => setLines(next.slice(0, ROWS));
 
+  const deleteBackward = (line: string) => {
+    const next = lines.slice();
+    if (pos.col > 0) {
+      next[pos.row] = line.slice(0, pos.col - 1) + line.slice(pos.col);
+      setPos({ row: pos.row, col: pos.col - 1 });
+      setValue(next);
+      return;
+    }
+    if (pos.row === 0) return;
+    const prev = next[pos.row - 1] ?? "";
+    next[pos.row - 1] = prev + (next[pos.row] ?? "");
+    next.splice(pos.row, 1);
+    setPos({ row: pos.row - 1, col: prev.length });
+    setValue(next);
+  };
+
+  const deleteForward = (line: string) => {
+    const next = lines.slice();
+    if (pos.col < line.length) {
+      next[pos.row] = line.slice(0, pos.col) + line.slice(pos.col + 1);
+      setValue(next);
+      return;
+    }
+    if (pos.row >= lines.length - 1) return;
+    next[pos.row] = line + (next[pos.row + 1] ?? "");
+    next.splice(pos.row + 1, 1);
+    setValue(next);
+  };
+
+  /** Splits the line at the caret, dropping the last line if the box is full. */
+  const breakLine = (line: string) => {
+    const next = lines.slice();
+    next.splice(pos.row + 1, 0, line.slice(pos.col));
+    next[pos.row] = line.slice(0, pos.col);
+    if (next.length > ROWS) next.pop();
+    setPos({ row: Math.min(pos.row + 1, ROWS - 1), col: 0 });
+    setValue(next);
+  };
+
+  const insert = (line: string, ch: string) => {
+    const next = lines.slice();
+    next[pos.row] = line.slice(0, pos.col) + ch + line.slice(pos.col);
+    setPos({ row: pos.row, col: pos.col + 1 });
+    setValue(next);
+  };
+
+  /** Caret movement. Returns true when the key was a movement key. */
+  const moveCaret = (key: string, line: string): boolean => {
+    switch (key) {
+      case "ArrowLeft":
+        if (pos.col > 0) setPos((p) => ({ row: p.row, col: p.col - 1 }));
+        else if (pos.row > 0) setPos({ row: pos.row - 1, col: (lines[pos.row - 1] ?? "").length });
+        return true;
+      case "ArrowRight":
+        if (pos.col < line.length) setPos((p) => ({ row: p.row, col: p.col + 1 }));
+        else if (pos.row < lines.length - 1) setPos({ row: pos.row + 1, col: 0 });
+        return true;
+      case "ArrowUp":
+        setPos((p) => ({
+          row: Math.max(0, p.row - 1),
+          col: Math.min(p.col, (lines[p.row - 1] ?? "").length),
+        }));
+        return true;
+      case "ArrowDown":
+        setPos((p) => ({
+          row: Math.min(lines.length - 1, p.row + 1),
+          col: Math.min(p.col, (lines[p.row + 1] ?? "").length),
+        }));
+        return true;
+      case "Home":
+        setPos((p) => ({ row: p.row, col: 0 }));
+        return true;
+      case "End":
+        setPos((p) => ({ row: p.row, col: (lines[p.row] ?? "").length }));
+        return true;
+      default:
+        return false;
+    }
+  };
+
   const onKey = (e: React.KeyboardEvent) => {
     if (e.key === "Tab") return;
     e.preventDefault();
     const line = lines[pos.row] ?? "";
 
-    if (e.key === "Backspace") {
-      if (pos.col > 0) {
-        const next = lines.slice();
-        next[pos.row] = line.slice(0, pos.col - 1) + line.slice(pos.col);
-        setPos({ row: pos.row, col: pos.col - 1 });
-        setValue(next);
-      } else if (pos.row > 0) {
-        const next = lines.slice();
-        const prev = next[pos.row - 1] ?? "";
-        next[pos.row - 1] = prev + (next[pos.row] ?? "");
-        next.splice(pos.row, 1);
-        setPos({ row: pos.row - 1, col: prev.length });
-        setValue(next);
-      }
-    } else if (e.key === "Delete") {
-      if (pos.col < line.length) {
-        const next = lines.slice();
-        next[pos.row] = line.slice(0, pos.col) + line.slice(pos.col + 1);
-        setValue(next);
-      } else if (pos.row < lines.length - 1) {
-        const next = lines.slice();
-        next[pos.row] = line + (next[pos.row + 1] ?? "");
-        next.splice(pos.row + 1, 1);
-        setValue(next);
-      }
-    } else if (e.key === "Enter") {
-      const next = lines.slice();
-      next.splice(pos.row + 1, 0, line.slice(pos.col));
-      next[pos.row] = line.slice(0, pos.col);
-      if (next.length > ROWS) next.pop();
-      setPos({ row: Math.min(pos.row + 1, ROWS - 1), col: 0 });
-      setValue(next);
-    } else if (e.key === "ArrowLeft") {
-      if (pos.col > 0) setPos((p) => ({ row: p.row, col: p.col - 1 }));
-      else if (pos.row > 0) setPos({ row: pos.row - 1, col: (lines[pos.row - 1] ?? "").length });
-    } else if (e.key === "ArrowRight") {
-      if (pos.col < line.length) setPos((p) => ({ row: p.row, col: p.col + 1 }));
-      else if (pos.row < lines.length - 1) setPos({ row: pos.row + 1, col: 0 });
-    } else if (e.key === "ArrowUp") {
-      setPos((p) => ({ row: Math.max(0, p.row - 1), col: Math.min(p.col, (lines[p.row - 1] ?? "").length) }));
-    } else if (e.key === "ArrowDown") {
-      setPos((p) => ({ row: Math.min(lines.length - 1, p.row + 1), col: Math.min(p.col, (lines[p.row + 1] ?? "").length) }));
-    } else if (e.key === "Home") {
-      setPos((p) => ({ row: p.row, col: 0 }));
-    } else if (e.key === "End") {
-      setPos((p) => ({ row: p.row, col: (lines[p.row] ?? "").length }));
-    } else if (e.key.length === 1) {
-      const next = lines.slice();
-      next[pos.row] = line.slice(0, pos.col) + e.key + line.slice(pos.col);
-      setPos({ row: pos.row, col: pos.col + 1 });
-      setValue(next);
-    }
+    if (moveCaret(e.key, line)) return;
+    if (e.key === "Backspace") return deleteBackward(line);
+    if (e.key === "Delete") return deleteForward(line);
+    if (e.key === "Enter") return breakLine(line);
+    if (e.key.length === 1) insert(line, e.key);
   };
 
   const rows: ReturnType<typeof R>[] = lines.map((line, ri) => {
