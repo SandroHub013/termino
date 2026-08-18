@@ -8,6 +8,12 @@ import { TerminalScreen } from "../../terminal";
 const W = 30;
 const H = 10;
 
+function zoneColor(pct: number): string {
+  if (pct >= 88) return C.red;
+  if (pct >= 66) return C.yellow;
+  return C.green;
+}
+
 export function DemoGauge() {
   const [value, setValue] = useState(42);
 
@@ -31,7 +37,7 @@ export function DemoGauge() {
   });
 
   const pct = Math.round(value);
-  const zone = pct >= 88 ? C.red : pct >= 66 ? C.yellow : C.green;
+  const zone = zoneColor(pct);
 
   const screen: Screen = {
     rows: [

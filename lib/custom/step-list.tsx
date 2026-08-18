@@ -1,7 +1,7 @@
 import { createElement as h, useEffect, useMemo, useState } from "react";
 import { Canvas } from "./canvas";
 import { cellsWidth } from "./chart";
-import { NEO, SPIN, neoPanel, type NeoColors } from "./neo";
+import { NEO, SPIN, neoPanel, stateGlyph, type NeoColors } from "./neo";
 
 export type StepState = "pending" | "running" | "done" | "error" | "skipped";
 
@@ -36,16 +36,8 @@ export function StepList({
   }, [running]);
 
   const rows = useMemo(() => {
-    const glyph = (s: Step) =>
-      s.state === "running"
-        ? { ch: SPIN[frame % SPIN.length] ?? SPIN[0], fg: color }
-        : s.state === "done"
-          ? { ch: "✓", fg: "#a5d98f" }
-          : s.state === "error"
-            ? { ch: "✗", fg: "#f0929e" }
-            : s.state === "skipped"
-              ? { ch: "–", fg: c.dim }
-              : { ch: "·", fg: c.dim };
+    const spinning = { ch: SPIN[frame % SPIN.length] ?? SPIN[0], fg: color };
+    const glyph = (s: Step) => stateGlyph(s.state ?? "pending", spinning, c);
     const inner: { ch: string; fg: string; bg?: string }[][] = [];
     if (title) {
       inner.push([{ ch: `${title}`, fg: c.text }]);

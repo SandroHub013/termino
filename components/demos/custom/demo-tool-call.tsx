@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { C, R, type Screen } from "@/lib/term";
 import { cursorRows, type CursorCell } from "@/lib/custom/chart";
-import { NEO, neoPanel } from "@/lib/custom/neo";
+import { NEO, neoPanel, stateGlyph } from "@/lib/custom/neo";
 import type { ToolState } from "@/lib/custom/tool-call";
 import { TerminalScreen } from "../../terminal";
 
@@ -67,14 +67,7 @@ export function DemoToolCall() {
   });
 
   const panels = calls.map((c) => {
-    const glyph =
-      c.state === "running"
-        ? { ch: frame(tick), fg: "#a5d98f" }
-        : c.state === "done"
-          ? { ch: "✓", fg: "#a5d98f" }
-          : c.state === "error"
-            ? { ch: "✗", fg: "#f0929e" }
-            : { ch: "·", fg: NEO.dim };
+    const glyph = stateGlyph(c.state, { ch: frame(tick), fg: "#a5d98f" });
     const body: CursorCell[] = [
       { ch: c.expanded ? "▾ " : "▸ ", fg: NEO.dim },
       glyph,

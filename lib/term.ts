@@ -71,6 +71,28 @@ export function boxChars(style: "single" | "double" | "rounded" | "heavy") {
   }
 }
 
+/** Where the title starts along a box's top edge, given the width available
+ *  for border characters (`pad`) and the width the title takes (`tlen`). */
+function titleOffset(
+  alignment: "left" | "center" | "right" | undefined,
+  pad: number,
+  tlen: number,
+): number {
+  if (alignment === "center") return Math.floor((pad - tlen) / 2);
+  if (alignment === "right") return pad - tlen;
+  return 0;
+}
+
+/**
+ * Background of a list row. A selected row always shows the selection colour;
+ * otherwise a focused widget tints its rows so the caret is easy to find and
+ * an unfocused one stays flat.
+ */
+export function rowBackground(selected: boolean, focused: boolean): string {
+  if (selected) return C.bgSel;
+  return focused ? "#1a1a1a" : "transparent";
+}
+
 export function drawBox(
   rows: Row[],
   width: number,
@@ -93,12 +115,7 @@ export function drawBox(
   let remaining = pad;
   if (title) {
     const tlen = title.length + 2;
-    const titleStart =
-      opts.titleAlignment === "center"
-        ? Math.floor((pad - tlen) / 2)
-        : opts.titleAlignment === "right"
-          ? pad - tlen
-          : 0;
+    const titleStart = titleOffset(opts.titleAlignment, pad, tlen);
     if (titleStart > 0) {
       topSegs.push({ t: c.h.repeat(titleStart), fg: borderColor, bg });
       remaining -= titleStart;

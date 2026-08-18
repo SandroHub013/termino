@@ -2,7 +2,7 @@ import { createElement as h, useEffect, useMemo, useState } from "react";
 import { useKeyboard } from "@opentui/react";
 import { Canvas } from "./canvas";
 import { cellsWidth, type CursorCell } from "./chart";
-import { NEO, SPIN, neoPanel, type NeoColors } from "./neo";
+import { NEO, SPIN, neoPanel, stateGlyph, type NeoColors } from "./neo";
 
 export type ToolState = "pending" | "running" | "done" | "error";
 
@@ -55,14 +55,7 @@ export function ToolCall({
   });
 
   const rows = useMemo(() => {
-    const glyph =
-      state === "running"
-        ? { ch: SPIN[frame % SPIN.length] ?? SPIN[0], fg: color }
-        : state === "done"
-          ? { ch: "✓", fg: "#a5d98f" }
-          : state === "error"
-            ? { ch: "✗", fg: "#f0929e" }
-            : { ch: "·", fg: c.dim };
+    const glyph = stateGlyph(state, { ch: SPIN[frame % SPIN.length] ?? SPIN[0], fg: color }, c);
     const body: CursorCell[] = [
       { ch: expanded ? "▾ " : "▸ ", fg: c.dim },
       glyph,
