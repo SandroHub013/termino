@@ -190,7 +190,10 @@ export function cellsWidth(cells: CursorCell[]): number {
 export function strWidth(s: string): number {
   let w = 0;
   for (const ch of s) {
-    const cp = ch.codePointAt(0)!;
+    // Iterating a string yields whole code points, so `codePointAt(0)` is
+    // always defined; an empty one would fall into the control-range skip
+    // below anyway.
+    const cp = ch.codePointAt(0) ?? 0;
     if (cp < 0x20) continue;
     if (
       (cp >= 0x0300 && cp <= 0x036f) ||
