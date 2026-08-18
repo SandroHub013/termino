@@ -13,7 +13,7 @@ export interface GridProps {
   cellProps?: Record<string, unknown>;
 }
 
-export function Grid({ children, columns, gap = 1, cellProps }: GridProps) {
+export function Grid({ children, columns, gap = 1, cellProps }: Readonly<GridProps>) {
   const cells = Children.toArray(children).filter(isValidElement);
   const cols = columns ?? (cells.length || 1);
 

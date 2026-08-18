@@ -31,7 +31,7 @@ export function ProfitLossLine({
   zeroColor = "#6b7280",
   gridColor = "#374151",
   showMetrics = true,
-}: ProfitLossLineProps) {
+}: Readonly<ProfitLossLineProps>) {
   const pts = toPoints(data);
   if (pts.length === 0) return null;
 

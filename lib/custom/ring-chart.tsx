@@ -18,7 +18,7 @@ export function RingChart({
   legend = true,
   center,
   centerColor,
-}: RingChartProps) {
+}: Readonly<RingChartProps>) {
   const total = useMemo(() => data.reduce((a, s) => a + s.value, 0), [data]);
   const rows = useMemo(
     () =>

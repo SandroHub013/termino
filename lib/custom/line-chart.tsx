@@ -130,7 +130,7 @@ export function Chart({
   selected: selectedProp,
   onSelect,
   format,
-}: LineChartProps) {
+}: Readonly<LineChartProps>) {
   const points = useMemo(() => toPoints(data), [data]);
   const cols = useMemo(() => sampleColumns(points, width), [points, width]);
   const sweep = useSweep(loading, width);

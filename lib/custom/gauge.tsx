@@ -30,7 +30,7 @@ export function Gauge({
   dangerAt,
   showTicks,
   label,
-}: GaugeProps) {
+}: Readonly<GaugeProps>) {
   const rows = useMemo(
     () =>
       renderGauge(value, min, max, width, height, {

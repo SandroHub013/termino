@@ -35,7 +35,7 @@ export function TokenMeter({
   warnAt = 0.6,
   dangerAt = 0.85,
   colors,
-}: TokenMeterProps) {
+}: Readonly<TokenMeterProps>) {
   const c = { ...NEO, ...colors };
   const ratio = total > 0 ? used / total : 0;
   const fillColor = zoneColor(ratio, warnAt, dangerAt, color);

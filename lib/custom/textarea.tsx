@@ -29,7 +29,7 @@ export function Textarea({
   placeholderFg = "#565f89",
   cursorFg = "#16161e",
   cursorBg = "#7dcfff",
-}: TextareaProps) {
+}: Readonly<TextareaProps>) {
   const [lines, setLines] = useState<string[]>(() =>
     defaultValue.split("\n").slice(0, rows),
   );

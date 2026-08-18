@@ -24,7 +24,7 @@ export function BarChart({
   showValues,
   showLabels,
   gridlines,
-}: BarChartProps) {
+}: Readonly<BarChartProps>) {
   const rows = useMemo(
     () =>
       renderBars(data, width, height, {

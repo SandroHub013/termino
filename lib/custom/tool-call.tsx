@@ -32,7 +32,7 @@ export function ToolCall({
   focused = true,
   color = "#a5d98f",
   colors,
-}: ToolCallProps) {
+}: Readonly<ToolCallProps>) {
   const c = { ...NEO, ...colors };
   const [internal, setInternal] = useState(!!defaultExpanded);
   const expanded = expandedProp ?? internal;

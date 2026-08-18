@@ -20,7 +20,7 @@ export function CandlestickChart({
   down,
   wick,
   showLabels,
-}: CandlestickChartProps) {
+}: Readonly<CandlestickChartProps>) {
   const rows = useMemo(
     () => renderCandles(data, width, height, { up, down, wick, showLabels }),
     [data, width, height, up, down, wick, showLabels],
