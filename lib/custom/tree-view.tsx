@@ -73,41 +73,56 @@ export function TreeView({
     return out;
   }, [nodes, expanded]);
 
+  const expand = (path: string) => setExpanded((prev) => new Set(prev).add(path));
+
+  const collapse = (path: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.delete(path);
+      return next;
+    });
+
+  /** Left on an open branch closes it; anywhere else it walks to the parent. */
+  const goLeft = (item: FlatNode | undefined) => {
+    if (item?.expandable && expanded.has(item.path)) {
+      collapse(item.path);
+      return;
+    }
+    const parent = parentPath(item?.path);
+    const idx = parent ? flat.findIndex((f) => f.path === parent) : -1;
+    if (idx >= 0) setSelected(idx);
+  };
+
+  const activate = (item: FlatNode) => {
+    if (item.expandable) {
+      if (expanded.has(item.path)) collapse(item.path);
+      else expand(item.path);
+    }
+    onSelect?.(item.node, item.path);
+  };
+
   useKeyboard((key) => {
     if (!focused) return;
-    if (key.name === "up" || key.name === "k") {
-      setSelected((s) => Math.max(0, s - 1));
-    } else if (key.name === "down" || key.name === "j") {
-      setSelected((s) => Math.min(flat.length - 1, s + 1));
-    } else if (key.name === "right" || key.name === "l") {
-      const item = flat[selected];
-      if (item?.expandable) setExpanded((prev) => new Set(prev).add(item.path));
-    } else if (key.name === "left" || key.name === "h") {
-      const item = flat[selected];
-      if (item?.expandable && expanded.has(item.path)) {
-        setExpanded((prev) => {
-          const next = new Set(prev);
-          next.delete(item.path);
-          return next;
-        });
-      } else {
-        const parent = parentPath(item?.path);
-        if (parent) {
-          const idx = flat.findIndex((f) => f.path === parent);
-          if (idx >= 0) setSelected(idx);
-        }
-      }
-    } else if (key.name === "return" && flat[selected]) {
-      const item = flat[selected];
-      if (item.expandable) {
-        setExpanded((prev) => {
-          const next = new Set(prev);
-          if (next.has(item.path)) next.delete(item.path);
-          else next.add(item.path);
-          return next;
-        });
-      }
-      onSelect?.(item.node, item.path);
+    const item = flat[selected];
+    switch (key.name) {
+      case "up":
+      case "k":
+        return setSelected((s) => Math.max(0, s - 1));
+      case "down":
+      case "j":
+        return setSelected((s) => Math.min(flat.length - 1, s + 1));
+      case "right":
+      case "l":
+        if (item?.expandable) expand(item.path);
+        return;
+      case "left":
+      case "h":
+        return goLeft(item);
+      case "return":
+        if (item) activate(item);
+        return;
+      default:
+        return;
     }
   });
 

@@ -19,6 +19,17 @@ export interface TextareaProps {
   cursorBg?: string;
 }
 
+/**
+ * The character a key typed, or null if it typed nothing. Printable keys
+ * arrive with `key.name` set to the character itself (e.g. "q"), so the test
+ * is on the sequence rather than on `key.name` being undefined.
+ */
+function printableChar(key: KeyEvent): string | null {
+  const seq = key.sequence;
+  if (!seq || seq.length !== 1 || seq < " " || key.ctrl || key.meta) return null;
+  return seq;
+}
+
 export function Textarea({
   defaultValue = "",
   onChange,
@@ -53,79 +64,98 @@ export function Textarea({
     emit(next);
   };
 
-  const handleKey = (key: KeyEvent) => {
-    if (key.name === "return") {
-      const next = lines.slice();
-      next.splice(pos.row + 1, 0, (next[pos.row] ?? "").slice(pos.col));
-      next[pos.row] = (next[pos.row] ?? "").slice(0, pos.col);
-      if (next.length >= rows && rows > 0) {
-        next.shift();
-        setPos({ row: rows - 1, col: 0 });
-        emit(next);
-        return;
-      }
+  /** Splits the current line at the caret. Once the text fills the visible
+   *  rows the topmost line scrolls off rather than the box growing. */
+  const breakLine = () => {
+    const next = lines.slice();
+    next.splice(pos.row + 1, 0, (next[pos.row] ?? "").slice(pos.col));
+    next[pos.row] = (next[pos.row] ?? "").slice(0, pos.col);
+    if (next.length >= rows && rows > 0) {
+      next.shift();
+      setPos({ row: rows - 1, col: 0 });
+    } else {
       setPos({ row: Math.min(pos.row + 1, next.length - 1), col: 0 });
-      emit(next);
-    } else if (key.name === "backspace") {
-      if (pos.col > 0) {
-        const next = lines.slice();
-        const line = next[pos.row] ?? "";
-        next[pos.row] = line.slice(0, pos.col - 1) + line.slice(pos.col);
-        setPos({ row: pos.row, col: pos.col - 1 });
-        emit(next);
-      } else if (pos.row > 0) {
-        const next = lines.slice();
-        const prev = next[pos.row - 1] ?? "";
-        next[pos.row - 1] = prev + (next[pos.row] ?? "");
-        next.splice(pos.row, 1);
-        setPos({ row: pos.row - 1, col: prev.length });
-        emit(next);
-      }
-    } else if (key.name === "delete") {
-      const next = lines.slice();
-      const line = next[pos.row] ?? "";
-      if (pos.col < line.length) {
-        next[pos.row] = line.slice(0, pos.col) + line.slice(pos.col + 1);
-        emit(next);
-      } else if (pos.row < next.length - 1) {
-        next[pos.row] = line + (next[pos.row + 1] ?? "");
-        next.splice(pos.row + 1, 1);
-        emit(next);
-      }
-    } else if (key.name === "left") {
-      if (pos.col > 0) setPos((p) => ({ row: p.row, col: p.col - 1 }));
-      else if (pos.row > 0) {
-        const prevLen = (lines[pos.row - 1] ?? "").length;
-        setPos({ row: pos.row - 1, col: prevLen });
-      }
-    } else if (key.name === "right") {
-      const len = (lines[pos.row] ?? "").length;
-      if (pos.col < len) setPos((p) => ({ row: p.row, col: p.col + 1 }));
-      else if (pos.row < lines.length - 1) setPos({ row: pos.row + 1, col: 0 });
-    } else if (key.name === "up") {
-      setPos((p) => ({ row: Math.max(0, p.row - 1), col: clampCol(p.row - 1, p.col) }));
-    } else if (key.name === "down") {
-      setPos((p) => ({
-        row: Math.min(lines.length - 1, p.row + 1),
-        col: clampCol(p.row + 1, p.col),
-      }));
-    } else if (key.name === "home") {
-      setPos((p) => ({ row: p.row, col: 0 }));
-    } else if (key.name === "end") {
-      setPos((p) => ({ row: p.row, col: (lines[p.row] ?? "").length }));
-    } else if (key.name === "space") {
-      insert(" ");
-    } else if (
-      key.sequence &&
-      key.sequence.length === 1 &&
-      key.sequence >= " " &&
-      !key.ctrl &&
-      !key.meta
-    ) {
-      // Printable characters arrive with key.name set to the character itself
-      // (e.g. "q"), so match on the sequence instead of key.name === undefined.
-      insert(key.sequence);
     }
+    emit(next);
+  };
+
+  /** Deletes the character before the caret, joining onto the line above when
+   *  the caret is already at the start of a line. */
+  const deleteBackward = () => {
+    const next = lines.slice();
+    if (pos.col > 0) {
+      const line = next[pos.row] ?? "";
+      next[pos.row] = line.slice(0, pos.col - 1) + line.slice(pos.col);
+      setPos({ row: pos.row, col: pos.col - 1 });
+      emit(next);
+      return;
+    }
+    if (pos.row === 0) return;
+    const prev = next[pos.row - 1] ?? "";
+    next[pos.row - 1] = prev + (next[pos.row] ?? "");
+    next.splice(pos.row, 1);
+    setPos({ row: pos.row - 1, col: prev.length });
+    emit(next);
+  };
+
+  /** Deletes the character under the caret, pulling up the line below when
+   *  the caret is at the end of a line. */
+  const deleteForward = () => {
+    const next = lines.slice();
+    const line = next[pos.row] ?? "";
+    if (pos.col < line.length) {
+      next[pos.row] = line.slice(0, pos.col) + line.slice(pos.col + 1);
+      emit(next);
+      return;
+    }
+    if (pos.row >= next.length - 1) return;
+    next[pos.row] = line + (next[pos.row + 1] ?? "");
+    next.splice(pos.row + 1, 1);
+    emit(next);
+  };
+
+  /** Caret movement. Returns true when the key was a movement key. */
+  const moveCaret = (name: string | undefined): boolean => {
+    switch (name) {
+      case "left":
+        if (pos.col > 0) setPos((p) => ({ row: p.row, col: p.col - 1 }));
+        else if (pos.row > 0) {
+          setPos({ row: pos.row - 1, col: (lines[pos.row - 1] ?? "").length });
+        }
+        return true;
+      case "right":
+        if (pos.col < (lines[pos.row] ?? "").length) {
+          setPos((p) => ({ row: p.row, col: p.col + 1 }));
+        } else if (pos.row < lines.length - 1) setPos({ row: pos.row + 1, col: 0 });
+        return true;
+      case "up":
+        setPos((p) => ({ row: Math.max(0, p.row - 1), col: clampCol(p.row - 1, p.col) }));
+        return true;
+      case "down":
+        setPos((p) => ({
+          row: Math.min(lines.length - 1, p.row + 1),
+          col: clampCol(p.row + 1, p.col),
+        }));
+        return true;
+      case "home":
+        setPos((p) => ({ row: p.row, col: 0 }));
+        return true;
+      case "end":
+        setPos((p) => ({ row: p.row, col: (lines[p.row] ?? "").length }));
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  const handleKey = (key: KeyEvent) => {
+    if (moveCaret(key.name)) return;
+    if (key.name === "return") return breakLine();
+    if (key.name === "backspace") return deleteBackward();
+    if (key.name === "delete") return deleteForward();
+    if (key.name === "space") return insert(" ");
+    const typed = printableChar(key);
+    if (typed) insert(typed);
   };
 
   useKeyboard((key) => {

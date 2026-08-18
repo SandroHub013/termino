@@ -49,29 +49,38 @@ function renderCells(
   color: string,
   fill: string,
 ): Cell[][] {
-  const rows: Cell[][] = [];
   const maxDepth = Math.max(1, height * 2 - 2);
+  const rows: Cell[][] = [];
   for (let r = 0; r < height; r++) {
-    const row: Cell[] = [];
-    for (let c = 0; c < width; c++) {
-      const p = edge[c];
-      if (p === null || p === undefined) {
-        row.push({ ch: GLYPH.none, fg: color });
-        continue;
-      }
-      const topF = r * 2 <= p;
-      const botF = r * 2 + 1 <= p;
-      if (!topF && !botF) {
-        row.push({ ch: GLYPH.none, fg: color });
-        continue;
-      }
-      const depth = p - (botF ? r * 2 + 1 : r * 2);
-      const fg = depth <= 0 ? color : mixColor(color, fill, clamp(depth / maxDepth, 0, 1));
-      row.push({ ch: halfBlock(topF, botF), fg });
-    }
-    rows.push(row);
+    rows.push(
+      Array.from({ length: width }, (_, c) => fillCell(edge[c], r, maxDepth, color, fill)),
+    );
   }
   return rows;
+}
+
+/**
+ * One cell of the filled area under the line. `p` is the half-cell row the
+ * line sits at in this column; everything below it is filled, darkening with
+ * distance from the line.
+ */
+function fillCell(
+  p: number | null | undefined,
+  r: number,
+  maxDepth: number,
+  color: string,
+  fill: string,
+): Cell {
+  const blank = { ch: GLYPH.none, fg: color };
+  if (p === null || p === undefined) return blank;
+
+  const topFilled = r * 2 <= p;
+  const bottomFilled = r * 2 + 1 <= p;
+  if (!topFilled && !bottomFilled) return blank;
+
+  const depth = p - (bottomFilled ? r * 2 + 1 : r * 2);
+  const fg = depth <= 0 ? color : mixColor(color, fill, clamp(depth / maxDepth, 0, 1));
+  return { ch: halfBlock(topFilled, bottomFilled), fg };
 }
 
 function shimmerCells(
