@@ -1,5 +1,4 @@
-import { createElement as h } from "react";
-import { useMemo } from "react";
+import { createElement as h, useMemo } from "react";
 import { Canvas } from "./canvas";
 import { renderHeatmap } from "./chart";
 

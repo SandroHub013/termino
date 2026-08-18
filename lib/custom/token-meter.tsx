@@ -1,5 +1,4 @@
-import { createElement as h } from "react";
-import { useMemo } from "react";
+import { createElement as h, useMemo } from "react";
 import { Canvas } from "./canvas";
 import { cellsWidth, strWidth, type CursorCell } from "./chart";
 import { NEO, neoFill, neoPanel, type NeoColors } from "./neo";
