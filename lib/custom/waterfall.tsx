@@ -18,6 +18,37 @@ export interface WaterfallChartProps {
   totalColor?: string;
 }
 
+interface Bar {
+  label: string;
+  value: number;
+  start: number;
+  end: number;
+  isTotal: boolean;
+  isPos: boolean;
+}
+
+/** A total bar reads as its own colour; every other bar is coloured by the
+ *  direction it moves the running balance. */
+function barColor(bar: Bar, positive: string, negative: string, total: string): string {
+  if (bar.isTotal) return total;
+  return bar.isPos ? positive : negative;
+}
+
+/** Bars are drawn as an outlined column: sides in light vertical rule, the
+ *  first and last rows as half blocks, everything between them solid. */
+function barGlyph(isEdge: boolean, isTop: boolean, isBottom: boolean): string {
+  if (isEdge) return "│";
+  if (isTop) return "▀";
+  if (isBottom) return "▄";
+  return "█";
+}
+
+/** Only the movements carry a sign; a total is stated as a plain figure. */
+function valuePrefix(bar: Bar): string {
+  if (bar.isTotal) return "";
+  return bar.isPos ? "+" : "";
+}
+
 export function WaterfallChart({
   items,
   width = 64,
@@ -31,14 +62,7 @@ export function WaterfallChart({
 
   // Calculate cumulative balances for floating bars
   let currentRunning = 0;
-  const bars: {
-    label: string;
-    value: number;
-    start: number;
-    end: number;
-    isTotal: boolean;
-    isPos: boolean;
-  }[] = [];
+  const bars: Bar[] = [];
 
   let minVal = 0;
   let maxVal = 0;
@@ -113,13 +137,13 @@ export function WaterfallChart({
       const isTop = r === rTop;
       const isBot = r === rBot;
 
-      const color = bar.isTotal ? totalColor : bar.isPos ? positiveColor : negativeColor;
+      const color = barColor(bar, positiveColor, negativeColor, totalColor);
 
       for (let w = 0; w < colWidth; w++) {
         if (inBar) {
           const isEdge = w === 0 || w === colWidth - 1;
           row.push({
-            ch: isEdge ? "│" : isTop ? "▀" : isBot ? "▄" : "█",
+            ch: barGlyph(isEdge, isTop, isBot),
             fg: color,
           });
         } else {
@@ -135,8 +159,8 @@ export function WaterfallChart({
   const valRow: CursorCell[] = [];
   valRow.push({ ch: " ", fg: "#374151" });
   for (const bar of bars) {
-    const valStr = (bar.isTotal ? "" : bar.isPos ? "+" : "") + bar.value.toFixed(0);
-    const color = bar.isTotal ? totalColor : bar.isPos ? positiveColor : negativeColor;
+    const valStr = valuePrefix(bar) + bar.value.toFixed(0);
+    const color = barColor(bar, positiveColor, negativeColor, totalColor);
 
     for (let w = 0; w < colWidth; w++) {
       valRow.push({

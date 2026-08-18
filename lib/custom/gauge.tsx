@@ -17,6 +17,14 @@ export interface GaugeProps {
   label?: string;
 }
 
+/** Colour of the percentage readout under the dial: red past the danger
+ *  threshold, amber past the warning one, green below both. */
+function zoneColor(pct: number, dangerAt: number, warnAt: number): string {
+  if (pct >= dangerAt) return "#f7768e";
+  if (pct >= warnAt) return "#e0af68";
+  return "#9ece6a";
+}
+
 export function Gauge({
   value,
   min = 0,
@@ -53,7 +61,7 @@ export function Gauge({
       { flexDirection: "row", gap: 1, width },
       h("text", { fg: DIM }, label ? ` ${label}` : ""),
       h("text", { fg: "#e0e6fa" }, `${value} / ${max}`),
-      h("text", { fg: pct >= (dangerAt ?? 0.88) ? "#f7768e" : pct >= (warnAt ?? 0.66) ? "#e0af68" : "#9ece6a" }, ` ${pct}%`),
+      h("text", { fg: zoneColor(pct, dangerAt ?? 0.88, warnAt ?? 0.66) }, ` ${pct}%`),
     ),
   );
 }

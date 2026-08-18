@@ -10,7 +10,7 @@ import { DemoLineChart, DemoAreaChart } from "@/components/demos/custom/demo-lin
 import { DemoProgressBar } from "@/components/demos/custom/demo-progress-bar";
 import { DemoSparkline } from "@/components/demos/custom/demo-sparkline";
 import { DemoBadge } from "@/components/demos/custom/demo-badge";
-import { DemoTreerView } from "@/components/demos/custom/demo-tree-view";
+import { DemoTreeView } from "@/components/demos/custom/demo-tree-view";
 import { DemoToast } from "@/components/demos/custom/demo-toast";
 import { DemoModal } from "@/components/demos/custom/demo-modal";
 import { DemoGrid } from "@/components/demos/custom/demo-grid";
@@ -38,7 +38,7 @@ const DEMOS: Record<string, React.ComponentType<{ variant?: string }>> = {
   ProgressBar: DemoProgressBar,
   Sparkline: DemoSparkline,
   Badge: DemoBadge,
-  TreeView: DemoTreerView,
+  TreeView: DemoTreeView,
   Toast: DemoToast,
   Modal: DemoModal,
   Grid: DemoGrid,

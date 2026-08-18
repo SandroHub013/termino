@@ -21,6 +21,18 @@ const VARIANT_GLYPHS: Record<Exclude<ProgressBarVariant, "blocks">, [string, str
   gradient: ["█", "░"],
 };
 
+/** Colour of one filled cell. The gradient variant lightens towards the right
+ *  end of the bar; every other variant paints a flat colour. */
+function fillColor(
+  variant: ProgressBarVariant,
+  color: string,
+  index: number,
+  width: number,
+): string {
+  if (variant !== "gradient") return color;
+  return mixColor(color, "#ffffff", (index / Math.max(1, width - 1)) * 0.55);
+}
+
 export function ProgressBar({
   value,
   max = 100,
@@ -49,26 +61,26 @@ export function ProgressBar({
           Array.from({ length: width }, (_, i) => {
             const [fillCh, trackCh] = VARIANT_GLYPHS[variant];
             const isFill = i < filled;
-            const fg = isFill
-              ? variant === "gradient"
-                ? mixColor(color, "#ffffff", (i / Math.max(1, width - 1)) * 0.55)
-                : color
-              : trackColor;
+            const fg = isFill ? fillColor(variant, color, i, width) : trackColor;
             return h("text", { key: i, fg }, isFill ? fillCh : trackCh);
           }),
         );
 
+  const headerParts = [];
+  if (label) headerParts.push(h("text", { fg: "#565f89" }, label));
+  if (showPercent) headerParts.push(h("text", { fg: percentColor }, `${pct}%`));
+  const header = headerParts.length
+    ? h(
+        "box",
+        { flexDirection: "row", justifyContent: "space-between", width: width + 4 },
+        ...headerParts,
+      )
+    : null;
+
   return h(
     "box",
     { flexDirection: "column", gap: 0 },
-    label || showPercent
-      ? h(
-          "box",
-          { flexDirection: "row", justifyContent: "space-between", width: width + 4 },
-          label ? h("text", { fg: "#565f89" }, label) : null,
-          showPercent ? h("text", { fg: percentColor }, `${pct}%`) : null,
-        )
-      : null,
+    header,
     bar,
   );
 }
