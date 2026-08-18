@@ -9,10 +9,10 @@ export default function Home() {
     <div className="max-w-4xl mx-auto px-4 md:px-8 py-14">
       <div className="mb-4 text-[12px] text-ink-400 flex items-center gap-2">
         <span className="text-term-green">●</span>
-        powered by @opentui/core · native zig core
+        <span>powered by @opentui/core · native zig core</span>
       </div>
       <h1 className="text-3xl md:text-5xl font-bold text-ink-050 leading-tight mb-4">
-        termino
+        {"termino"}
         <span className="text-term-cyan">_</span>
         <span className="block text-term-caret text-ink-300 text-lg md:text-xl font-normal mt-2">
           terminal UI components, built on OpenTUI
@@ -30,7 +30,7 @@ export default function Home() {
         >
           OpenTUI
         </a>
-        , the native Zig terminal core.
+        {", the native Zig terminal core."}
       </p>
 
       <div className="mb-12">
