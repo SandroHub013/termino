@@ -26,10 +26,13 @@ preference — re-test rather than assuming they still fail.
   that TS 7 *"does not provide the compiler API required by Next.js"* and
   suggests TypeScript 6. The repo is on TypeScript 6, which typechecks, lints
   and builds cleanly. Revisit once `typescript-eslint` ships TS 7 support.
-- **ESLint 10.** The `eslint-plugin-react` bundled inside `eslint-config-next`
-  calls the `context` API that ESLint 10 removed, so every lint run dies with
-  `contextOrFilename.getFilename is not a function`. Revisit when
-  `eslint-config-next` ships a compatible `eslint-plugin-react`.
+
+**ESLint 10 is no longer held back.** It was, because the
+`eslint-plugin-react` bundled inside `eslint-config-next` called the `context`
+API that ESLint 10 removed and every lint run died with
+`contextOrFilename.getFilename is not a function`. `eslint-config-next`
+16.3.1 ships a compatible plugin; ESLint 10.8.1 now lints the repository
+clean, with the `eslint-plugin-sonarjs` rules still reporting.
 
 ---
 
