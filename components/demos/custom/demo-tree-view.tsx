@@ -130,6 +130,8 @@ export function DemoTreerView() {
   return (
     <div
       ref={ref}
+      role="tree"
+      aria-label="Tree view demo: arrow keys to walk the tree, enter to expand"
       tabIndex={0}
       onKeyDown={onKey}
       onFocus={() => setFocused(true)}

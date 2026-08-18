@@ -96,6 +96,9 @@ export function DemoModal() {
 
   return (
     <div
+      role="button"
+      aria-pressed={open}
+      aria-label="Modal demo: space or enter toggles the dialog, escape closes it"
       tabIndex={0}
       onKeyDown={onKey}
       className="outline-none cursor-pointer"

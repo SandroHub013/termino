@@ -67,10 +67,20 @@ export function DemoQRCode({ variant = "half-block" }: Readonly<{ variant?: stri
     ],
   };
 
+  const rotate = () => setIdx((i) => (i + 1) % PAYLOADS.length);
+
   return (
     <div
+      role="button"
+      aria-label="QR code demo: activate to show the next payload"
       tabIndex={0}
-      onClick={() => setIdx((i) => (i + 1) % PAYLOADS.length)}
+      onClick={rotate}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          rotate();
+        }
+      }}
       className="outline-none cursor-pointer"
     >
       <TerminalScreen screen={screen} />
