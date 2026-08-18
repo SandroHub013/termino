@@ -3,7 +3,7 @@ import { Sidebar } from "./sidebar";
 import { ThemeSwitcher } from "./theme-switcher";
 import { GitHubLink } from "./github-link";
 
-export default function Shell({ children }: { children: React.ReactNode }) {
+export default function Shell({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className="flex flex-col min-h-screen">
       <header className="t-header sticky top-0 z-40 border-b border-ink-700 bg-ink-950/85 backdrop-blur">
