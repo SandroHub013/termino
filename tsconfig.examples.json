@@ -2,6 +2,9 @@
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["ESNext"],
+    // The examples run on a terminal runtime, not in a browser, so the timer
+    // globals the components use come from Node's typings rather than DOM's.
+    "types": ["node"],
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
