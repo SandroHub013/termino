@@ -8,15 +8,16 @@ import { TerminalScreen } from "../../terminal";
 const W = 40;
 const LABELS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
+const jitter = (v: number) => Math.max(8, Math.min(95, v + (Math.random() * 24 - 12)));
+const drift = (values: number[]) => values.map(jitter);
+
 export function DemoBarChart() {
   const [values, setValues] = useState<number[]>(() =>
     LABELS.map((_, i) => 30 + ((i * 37) % 60) + Math.random() * 15),
   );
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setValues((prev) => prev.map((v) => Math.max(8, Math.min(95, v + (Math.random() * 24 - 12)))));
-    }, 350);
+    const timer = setInterval(() => setValues(drift), 350);
     return () => clearInterval(timer);
   }, []);
 

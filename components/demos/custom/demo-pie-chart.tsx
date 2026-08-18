@@ -9,15 +9,14 @@ const W = 24;
 const H = 13;
 const INIT = [46, 32, 14, 8];
 
+const drift = (values: number[]) =>
+  values.map((v, i) => Math.max(2, v + Math.round((Math.random() - 0.5 + (i - 1.5) * 0.08) * 10)));
+
 export function DemoPieChart() {
   const [values, setValues] = useState<number[]>(INIT);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setValues((prev) =>
-        prev.map((v, i) => Math.max(2, v + Math.round((Math.random() - 0.5 + (i - 1.5) * 0.08) * 10))),
-      );
-    }, 500);
+    const timer = setInterval(() => setValues(drift), 500);
     return () => clearInterval(timer);
   }, []);
 
