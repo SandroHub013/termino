@@ -1,10 +1,12 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import sonarjs from "eslint-plugin-sonarjs";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  sonarjs.configs.recommended,
   {
     // Rules a Sonar-style scan reports on this repo but eslint-config-next
     // leaves off. Turning them on here keeps the two in agreement, so a
@@ -19,6 +21,10 @@ const eslintConfig = defineConfig([
       "jsx-a11y/no-noninteractive-tabindex": "error",
       "jsx-a11y/no-static-element-interactions": "error",
       "@typescript-eslint/prefer-for-of": "error",
+
+      // The demos and charts use `Math.random` for shimmer, jitter and sample
+      // data. Nothing here guards a secret, so a CSPRNG would buy nothing.
+      "sonarjs/pseudo-random": "off",
     },
   },
   {
