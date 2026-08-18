@@ -7,6 +7,7 @@ import { createElement as h, useEffect, useMemo, useState } from "react";
 import { useKeyboard } from "@opentui/react";
 import {
   clamp,
+  halfBlock,
   linearScale,
   mergeRuns,
   mixColor,
@@ -66,8 +67,7 @@ function renderCells(
       }
       const depth = p - (botF ? r * 2 + 1 : r * 2);
       const fg = depth <= 0 ? color : mixColor(color, fill, clamp(depth / maxDepth, 0, 1));
-      const ch = topF && botF ? GLYPH.both : topF ? GLYPH.top : GLYPH.bottom;
-      row.push({ ch, fg });
+      row.push({ ch: halfBlock(topF, botF), fg });
     }
     rows.push(row);
   }
@@ -193,22 +193,25 @@ export function Chart({
       )
     : null;
 
-  const tooltipRow =
-    crosshair && selValue !== null
-      ? h(
-          "box",
-          { flexDirection: "row", gap: 1, width },
-          h("text", { fg: color }, `▐ ${format ? format(selValue, sel!.index) : selValue.toFixed(2)}`),
-          delta !== 0
-            ? h(
-                "text",
-                { fg: delta > 0 ? "#9ece6a" : "#f7768e" },
-                `${delta > 0 ? "▲" : "▼"} ${Math.abs(delta).toFixed(2)}`,
-              )
-            : null,
-          h("text", { fg: "#565f89" }, `  col ${active ?? 0}`),
-        )
-      : null;
+  const renderTooltip = (value: number) => {
+    const parts = [
+      h("text", { fg: color }, `▐ ${format ? format(value, selIndex) : value.toFixed(2)}`),
+    ];
+    if (delta !== 0) {
+      const rising = delta > 0;
+      parts.push(
+        h(
+          "text",
+          { fg: rising ? "#9ece6a" : "#f7768e" },
+          `${rising ? "▲" : "▼"} ${Math.abs(delta).toFixed(2)}`,
+        ),
+      );
+    }
+    parts.push(h("text", { fg: "#565f89" }, `  col ${active ?? 0}`));
+    return h("box", { flexDirection: "row", gap: 1, width }, ...parts);
+  };
+
+  const tooltipRow = crosshair && selValue !== null ? renderTooltip(selValue) : null;
 
   const body = cells.map((row, r) => {
     const highlighted = active !== null && active !== undefined;

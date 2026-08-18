@@ -21,6 +21,17 @@ export interface ProfitLossLineProps {
   showMetrics?: boolean;
 }
 
+/** Axis labels: brightest on the zero line, mid on a row that carries a tick,
+ *  faintest on the rows in between. */
+function tickLabelColor(isZeroRow: boolean, hasTick: boolean): string {
+  if (isZeroRow) return "#9ca3af";
+  return hasTick ? "#6b7280" : "#4b5563";
+}
+
+/** The shading between the line and the zero row: an upper half block when
+ *  the line sits above zero, a lower one when it sits below. */
+const shadeGlyph = (isPositive: boolean) => (isPositive ? "▀" : "▄");
+
 export function ProfitLossLine({
   data,
   width = 60,
@@ -74,7 +85,7 @@ export function ProfitLossLine({
     }
     lbl = lbl.padStart(tickLabelWidth - 1, " ");
 
-    const labelFg = isZeroRow ? "#9ca3af" : nearTick !== undefined ? "#6b7280" : "#4b5563";
+    const labelFg = tickLabelColor(isZeroRow, nearTick !== undefined);
 
     for (let i = 0; i < tickLabelWidth - 1; i++) {
       row.push({ ch: lbl[i] || " ", fg: labelFg });
@@ -131,7 +142,7 @@ export function ProfitLossLine({
       const targetRow = r >= 0 && r < chartH ? rows[r] : undefined;
       if (!targetRow) continue;
       const isLineCell = r === rLine;
-      const ch = isLineCell ? "█" : isPos ? "▀" : "▄";
+      const ch = isLineCell ? "█" : shadeGlyph(isPos);
       targetRow[cellCol] = {
         ch,
         fg: isLineCell ? color : dimColor,

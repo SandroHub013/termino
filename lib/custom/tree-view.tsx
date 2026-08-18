@@ -23,6 +23,20 @@ interface FlatNode {
   expandable: boolean;
 }
 
+/** Marker at the head of a row: a caret that points down when the branch is
+ *  open and right when it is closed, or a dot for a leaf. */
+export function branchGlyph(expandable: boolean, isExpanded: boolean): string {
+  if (!expandable) return "·";
+  return isExpanded ? "▾" : "▸";
+}
+
+/** Row text colour: the selection colour wins, branches read brighter than
+ *  leaves. */
+function rowColor(isSelected: boolean, expandable: boolean, selectedColor: string): string {
+  if (isSelected) return selectedColor;
+  return expandable ? "#7dcfff" : "#a9b1d6";
+}
+
 function flatten(
   nodes: TreeNode[],
   expanded: Set<string>,
@@ -102,11 +116,7 @@ export function TreeView({
     { flexDirection: "column" },
     flat.map((item, i) => {
       const isSel = focused && i === selected;
-      const glyph = item.expandable
-        ? expanded.has(item.path)
-          ? "▾"
-          : "▸"
-        : "·";
+      const glyph = branchGlyph(item.expandable, expanded.has(item.path));
       return h(
         "box",
         {
@@ -119,7 +129,7 @@ export function TreeView({
         h(
           "text",
           {
-            fg: isSel ? selectedTextColor : item.expandable ? "#7dcfff" : "#a9b1d6",
+            fg: rowColor(isSel, item.expandable, selectedTextColor),
           },
           `${glyph} ${item.node.name}`,
         ),
