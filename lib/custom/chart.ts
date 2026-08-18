@@ -58,31 +58,36 @@ export interface ColumnSample {
   value: number;
 }
 
-export function sampleColumns(
+/** Fewer points than columns: each point keeps its own column, spread evenly
+ *  across the width, and the columns between them stay empty. */
+function spreadPoints(
   points: { x: number; y: number }[],
   width: number,
 ): (ColumnSample | null)[] {
-  if (points.length === 0 || width <= 0) return [];
   const cols: (ColumnSample | null)[] = new Array(width).fill(null);
-  if (points.length <= width) {
-    for (let i = 0; i < points.length; i++) {
-      const p = points[i];
-      if (!p) continue;
-      // A lone point has no span to spread across; put it in the first
-      // column, where the first point of any longer series also lands.
-      const col =
-        points.length === 1
-          ? 0
-          : Math.round((i / (points.length - 1)) * (width - 1));
-      cols[col] = { index: i, value: p.y };
-    }
-    return cols;
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+    if (!p) continue;
+    // A lone point has no span to spread across; put it in the first
+    // column, where the first point of any longer series also lands.
+    const col = points.length === 1 ? 0 : Math.round((i / (points.length - 1)) * (width - 1));
+    cols[col] = { index: i, value: p.y };
   }
+  return cols;
+}
+
+/** More points than columns: each column takes the peak of the points that
+ *  fall inside it, so spikes survive the downsample. */
+function bucketPoints(
+  points: { x: number; y: number }[],
+  width: number,
+): (ColumnSample | null)[] {
+  const cols: (ColumnSample | null)[] = new Array(width).fill(null);
   const bucket = points.length / width;
   for (let col = 0; col < width; col++) {
     const start = Math.floor(col * bucket);
     const end = Math.max(start + 1, Math.floor((col + 1) * bucket));
-    let best: { index: number; value: number } | null = null;
+    let best: ColumnSample | null = null;
     for (let i = start; i < end && i < points.length; i++) {
       const p = points[i];
       if (!p) continue;
@@ -91,6 +96,14 @@ export function sampleColumns(
     cols[col] = best;
   }
   return cols;
+}
+
+export function sampleColumns(
+  points: { x: number; y: number }[],
+  width: number,
+): (ColumnSample | null)[] {
+  if (points.length === 0 || width <= 0) return [];
+  return points.length <= width ? spreadPoints(points, width) : bucketPoints(points, width);
 }
 
 /** Snaps a mantissa in `[1, 10)` to the nearest step people read easily. */
@@ -315,93 +328,139 @@ export function renderBars(
   if (!n || width <= 0 || height <= 0) return [];
   const plotPx = height * 2 - 2;
   const gw = Math.max(1, Math.floor(width / n));
-  const barW = gw > 1 ? gw - 1 : 1;
-  const hi = max ?? Math.max(...data.map((d) => d.value), 1);
-  const ticks: number[] = gridlines
-    ? niceTicks(0, hi, Math.max(1, Math.floor(plotPx / 4)))
-        .map((t) => Math.round((t / hi) * plotPx))
-        .filter((p) => p > 0 && p < plotPx)
-    : [];
-  const isTick = (p: number) => ticks.includes(p);
+  const layout: BarLayout = {
+    width,
+    height,
+    count: n,
+    groupWidth: gw,
+    barWidth: gw > 1 ? gw - 1 : 1,
+    peak: max ?? Math.max(...data.map((d) => d.value), 1),
+    plotPx,
+  };
+  const style: BarStyle = {
+    color,
+    fill,
+    ticks: gridlines ? gridlineRows(layout.peak, plotPx) : [],
+  };
 
-  const grid: (r: number) => CursorCell = (r) =>
-    isTick(r * 2) || isTick(r * 2 + 1)
-      ? { ch: "─", fg: DIM }
-      : { ch: " ", fg: color };
-
-  const rows: CursorCell[][] = [];
-  for (let r = 0; r < height; r++) {
-    const row: CursorCell[] = [];
-    for (let c = 0; c < width; c++) {
-      const i = Math.min(n - 1, Math.floor(c / gw));
-      const datum = data[i];
-      const inBar = i >= 0 && c % gw < barW;
-      if (!inBar || !datum) {
-        row.push(grid(r));
-        continue;
-      }
-      const v = datum.value;
-      const px = clamp(Math.round((v / hi) * plotPx), 0, plotPx);
-      const boundary = plotPx - px;
-      const p = r * 2;
-      if (boundary <= p) {
-        const depth = Math.min(plotPx - 1, (p + 1) - boundary);
-        row.push({
-          ch: "█",
-          fg:
-            depth <= 0
-              ? datum.color ?? color
-              : mixColor(datum.color ?? color, fill, depth / Math.max(1, plotPx)),
-        });
-      } else if (boundary <= p + 1) {
-        row.push({ ch: "▄", fg: datum.color ?? color });
-      } else {
-        row.push(grid(r));
-      }
-    }
-    rows.push(row);
-  }
-
-  if (showValues) {
-    for (let i = 0; i < n; i++) {
-      const datum = data[i];
-      if (!datum) continue;
-      const v = datum.value;
-      const px = clamp(Math.round((v / hi) * plotPx), 0, plotPx);
-      const target = height - 2 - Math.ceil(px / 2) + 1;
-      const targetRow = rows[target];
-      if (!targetRow) continue;
-      const text = String(Math.round(v));
-      if (text.length > barW) continue;
-      const x0 = i * gw + Math.max(0, Math.floor((barW - text.length) / 2));
-      for (let k = 0; k < text.length; k++) {
-        const c = x0 + k;
-        const ch = text[k];
-        if (c < width && ch !== undefined) targetRow[c] = { ch, fg: "#c0caf5" };
-      }
-    }
-  }
-
-  if (showLabels && data.some((d) => d.label)) {
-    const labelRow: CursorCell[] = Array.from({ length: width }, () => ({
-      ch: " ",
-      fg: DIM,
-    }));
-    for (let i = 0; i < n; i++) {
-      const label = data[i]?.label;
-      if (!label) continue;
-      const text = label.length > gw ? label.slice(0, Math.max(1, gw)) : label;
-      const x0 = i * gw + Math.max(0, Math.floor((gw - text.length) / 2));
-      for (let k = 0; k < text.length; k++) {
-        const c = x0 + k;
-        const ch = text[k];
-        if (c < width && ch !== undefined) labelRow[c] = { ch, fg: DIM };
-      }
-    }
-    rows.push(labelRow);
-  }
-
+  const rows = plotBars(data, layout, style);
+  if (showValues) overlayValues(rows, data, layout);
+  if (showLabels && data.some((d) => d.label)) rows.push(buildLabelRow(data, layout));
   return rows;
+}
+
+interface BarLayout {
+  width: number;
+  height: number;
+  /** Number of bars. */
+  count: number;
+  /** Columns allotted to one bar plus the gap after it. */
+  groupWidth: number;
+  /** Columns the bar itself occupies. */
+  barWidth: number;
+  /** Value the tallest bar represents. */
+  peak: number;
+  /** Height of the plot in half-cell pixels. */
+  plotPx: number;
+}
+
+interface BarStyle {
+  color: string;
+  fill: string;
+  /** Half-cell rows that carry a gridline. */
+  ticks: number[];
+}
+
+/** Overwrites `row` with `text`, starting at column `x0` and keeping only the
+ *  characters that land inside the row. */
+function writeText(row: CursorCell[], x0: number, text: string, width: number, fg: string): void {
+  for (let k = 0; k < text.length; k++) {
+    const c = x0 + k;
+    const ch = text[k];
+    if (c >= 0 && c < width && ch !== undefined) row[c] = { ch, fg };
+  }
+}
+
+/** The half-cell rows a gridline falls on, dropping the ones that would land
+ *  on the axis or the top edge. */
+function gridlineRows(peak: number, plotPx: number): number[] {
+  return niceTicks(0, peak, Math.max(1, Math.floor(plotPx / 4)))
+    .map((t) => Math.round((t / peak) * plotPx))
+    .filter((p) => p > 0 && p < plotPx);
+}
+
+function gridCell(r: number, style: BarStyle): CursorCell {
+  const onGridline = style.ticks.includes(r * 2) || style.ticks.includes(r * 2 + 1);
+  return onGridline ? { ch: "─", fg: DIM } : { ch: " ", fg: style.color };
+}
+
+/**
+ * One cell of the plot. A bar fills from the bottom, darkening towards its
+ * base, and caps with a lower half block when its top lands mid-cell.
+ */
+function barCell(
+  r: number,
+  c: number,
+  data: BarDatum[],
+  layout: BarLayout,
+  style: BarStyle,
+): CursorCell {
+  const i = Math.min(layout.count - 1, Math.floor(c / layout.groupWidth));
+  const datum = data[i];
+  if (i < 0 || !datum || c % layout.groupWidth >= layout.barWidth) return gridCell(r, style);
+
+  const px = clamp(Math.round((datum.value / layout.peak) * layout.plotPx), 0, layout.plotPx);
+  const boundary = layout.plotPx - px;
+  const p = r * 2;
+  const barColor = datum.color ?? style.color;
+
+  if (boundary <= p) {
+    const depth = Math.min(layout.plotPx - 1, p + 1 - boundary);
+    const fg =
+      depth <= 0 ? barColor : mixColor(barColor, style.fill, depth / Math.max(1, layout.plotPx));
+    return { ch: "█", fg };
+  }
+  if (boundary <= p + 1) return { ch: "▄", fg: barColor };
+  return gridCell(r, style);
+}
+
+function plotBars(data: BarDatum[], layout: BarLayout, style: BarStyle): CursorCell[][] {
+  const rows: CursorCell[][] = [];
+  for (let r = 0; r < layout.height; r++) {
+    rows.push(
+      Array.from({ length: layout.width }, (_, c) => barCell(r, c, data, layout, style)),
+    );
+  }
+  return rows;
+}
+
+/** Stamps each bar's value into the row just above its top, skipping any that
+ *  would not fit within the bar's own width. */
+function overlayValues(rows: CursorCell[][], data: BarDatum[], layout: BarLayout): void {
+  for (let i = 0; i < layout.count; i++) {
+    const datum = data[i];
+    if (!datum) continue;
+    const px = clamp(Math.round((datum.value / layout.peak) * layout.plotPx), 0, layout.plotPx);
+    const targetRow = rows[layout.height - 2 - Math.ceil(px / 2) + 1];
+    const text = String(Math.round(datum.value));
+    if (!targetRow || text.length > layout.barWidth) continue;
+    const x0 = i * layout.groupWidth + Math.max(0, Math.floor((layout.barWidth - text.length) / 2));
+    writeText(targetRow, x0, text, layout.width, "#c0caf5");
+  }
+}
+
+/** The category row under the plot: each label centred on its group, clipped
+ *  to the group's width. */
+function buildLabelRow(data: BarDatum[], layout: BarLayout): CursorCell[] {
+  const row: CursorCell[] = Array.from({ length: layout.width }, () => ({ ch: " ", fg: DIM }));
+  for (let i = 0; i < layout.count; i++) {
+    const label = data[i]?.label;
+    if (!label) continue;
+    const text = label.slice(0, Math.max(1, layout.groupWidth));
+    const x0 = i * layout.groupWidth + Math.max(0, Math.floor((layout.groupWidth - text.length) / 2));
+    writeText(row, x0, text, layout.width, DIM);
+  }
+  return row;
 }
 
 /* ---------------------------- pie / ring chart --------------------------- */
@@ -433,67 +492,107 @@ export function renderDonut(
   const cx = (width - 1) / 2;
   const cy = (height - 1) / 2;
   const rOut = Math.max(1, Math.min(cx, cy) - 0.5);
-  const rIn = rOut * innerRatio;
+  const geometry: DonutGeometry = { cx, cy, rOut, rIn: rOut * innerRatio, innerRatio };
 
-  const segs: { start: number; end: number; slice: Slice }[] = [];
-  let cur = 0;
-  for (const s of slices) {
-    const frac = total > 0 ? s.value / total : 0;
-    segs.push({ start: cur, end: cur + frac * Math.PI * 2, slice: s });
-    cur += frac * Math.PI * 2;
-  }
-
-  const rows: CursorCell[][] = [];
-  for (let r = 0; r < height; r++) {
-    const row: CursorCell[] = [];
-    for (let c = 0; c < width; c++) {
-      const dx = c - cx;
-      const dy = r - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      let cell: CursorCell = { ch: " ", fg: INK };
-      if (dist <= rOut) {
-        const a =
-          ((Math.atan2(dy, dx) - Math.PI / 2) % (Math.PI * 2) + Math.PI * 2) %
-          (Math.PI * 2);
-        const hit = total > 0 ? segs.find((s) => a >= s.start && a < s.end) : null;
-        if (hit) {
-          const color =
-            dist > rOut - 0.8 ? mixColor(hit.slice.color, "#ffffff", 0.18) : hit.slice.color;
-          cell = { ch: " ", fg: color, bg: color };
-        } else if (innerRatio > 0 && dist <= rIn) {
-          cell = { ch: " ", fg: "#16161e", bg: "#16161e" };
-        }
-      }
-      row.push(cell);
-    }
-    rows.push(row);
-  }
+  const rows = plotDonut(width, height, geometry, sliceSegments(slices, total));
 
   if (center && innerRatio > 0) {
     const centerRow = rows[Math.round(cy)];
-    const x0 = Math.round(cx - center.length / 2);
-    for (let i = 0; centerRow && i < center.length; i++) {
-      const c = x0 + i;
-      const ch = center[i];
-      if (c >= 0 && c < width && ch !== undefined) {
-        centerRow[c] = { ch, fg: centerColor };
-      }
+    if (centerRow) {
+      writeText(centerRow, Math.round(cx - center.length / 2), center, width, centerColor);
     }
   }
 
-  if (legend) {
-    rows.push([]);
-    for (const s of slices) {
-      const pct = total > 0 ? Math.round((s.value / total) * 100) : 0;
-      rows.push([
-        { ch: "■", fg: s.color },
-        { ch: ` ${s.label} `, fg: INK },
-        { ch: `${pct}%`, fg: DIM },
-      ]);
-    }
-  }
+  if (legend) rows.push(...legendRows(slices, total));
 
   return rows;
+}
+
+interface DonutSegment {
+  /** Radians clockwise from twelve o'clock. */
+  start: number;
+  end: number;
+  slice: Slice;
+}
+
+interface DonutGeometry {
+  cx: number;
+  cy: number;
+  rOut: number;
+  rIn: number;
+  innerRatio: number;
+}
+
+/** Lays the slices end to end around the circle. With no total every segment
+ *  is empty, so nothing is drawn. */
+function sliceSegments(slices: Slice[], total: number): DonutSegment[] {
+  const segs: DonutSegment[] = [];
+  let cur = 0;
+  for (const s of slices) {
+    const sweep = (total > 0 ? s.value / total : 0) * Math.PI * 2;
+    segs.push({ start: cur, end: cur + sweep, slice: s });
+    cur += sweep;
+  }
+  return segs;
+}
+
+/** Angle of `(dx, dy)` clockwise from twelve o'clock, in `[0, 2π)`. */
+function ringAngle(dx: number, dy: number): number {
+  const turn = Math.PI * 2;
+  return (((Math.atan2(dy, dx) - Math.PI / 2) % turn) + turn) % turn;
+}
+
+function donutCell(
+  dist: number,
+  angle: number,
+  geometry: DonutGeometry,
+  segs: DonutSegment[],
+): CursorCell {
+  const blank: CursorCell = { ch: " ", fg: INK };
+  if (dist > geometry.rOut) return blank;
+
+  const hit = segs.find((s) => angle >= s.start && angle < s.end);
+  if (hit) {
+    // The outermost band is lightened, which reads as a rim around the disc.
+    const onRim = dist > geometry.rOut - 0.8;
+    const color = onRim ? mixColor(hit.slice.color, "#ffffff", 0.18) : hit.slice.color;
+    return { ch: " ", fg: color, bg: color };
+  }
+  if (geometry.innerRatio > 0 && dist <= geometry.rIn) {
+    return { ch: " ", fg: "#16161e", bg: "#16161e" };
+  }
+  return blank;
+}
+
+function plotDonut(
+  width: number,
+  height: number,
+  geometry: DonutGeometry,
+  segs: DonutSegment[],
+): CursorCell[][] {
+  const rows: CursorCell[][] = [];
+  for (let r = 0; r < height; r++) {
+    rows.push(
+      Array.from({ length: width }, (_, c) => {
+        const dx = c - geometry.cx;
+        const dy = r - geometry.cy;
+        return donutCell(Math.sqrt(dx * dx + dy * dy), ringAngle(dx, dy), geometry, segs);
+      }),
+    );
+  }
+  return rows;
+}
+
+/** A blank spacer followed by one swatch-label-percentage row per slice. */
+function legendRows(slices: Slice[], total: number): CursorCell[][] {
+  return [
+    [],
+    ...slices.map((s) => [
+      { ch: "■", fg: s.color },
+      { ch: ` ${s.label} `, fg: INK },
+      { ch: `${total > 0 ? Math.round((s.value / total) * 100) : 0}%`, fg: DIM },
+    ]),
+  ];
 }
 
 /* --------------------------------- gauge -------------------------------- */
@@ -525,64 +624,109 @@ export function renderGauge(
   const frac = span > 0 ? clamp((value - min) / span, 0, 1) : 0;
   const cx = (width - 1) / 2;
   const cy = height - 1.3;
-  const r = Math.max(1, Math.min(cx, cy - 0.6));
-
-  const zoneColor = (v: number) => {
-    if (v >= dangerAt) return dangerColor;
-    if (v >= warnAt) return warnColor;
-    return color;
-  };
+  const dial: DialGeometry = { cx, cy, r: Math.max(1, Math.min(cx, cy - 0.6)) };
+  const style: DialStyle = { color, warnColor, dangerColor, warnAt, dangerAt, showTicks };
 
   const rows: CursorCell[][] = [];
   for (let row = 0; row < height; row++) {
-    const out: CursorCell[] = [];
-    for (let col = 0; col < width; col++) {
-      const dx = col - cx;
-      const dy = cy - row;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      let cell: CursorCell = { ch: " ", fg: color };
-      if (dy >= 0) {
-        const a = Math.atan2(dy, dx);
-        // `a` runs PI (left, the minimum) to 0 (right, the maximum), so the
-        // position along the sweep is its complement. Ticks are unaffected:
-        // {0, .25, .5, .75, 1} is symmetric under v -> 1 - v.
-        const v = 1 - a / Math.PI;
-        if (showTicks && dist >= r + 0.9 && dist <= r + 1.3) {
-          const tickV = Math.round(v * 4) / 4;
-          if (Math.abs(v - tickV) < 0.02) {
-            cell = { ch: "·", fg: DIM };
-            out.push(cell);
-            continue;
-          }
-        }
-        if (dist >= r - 0.7 && dist <= r + 0.7) {
-          // Paint from the start of the sweep up to the needle at
-          // PI * (1 - frac), so the arc fills as the value rises.
-          if (a >= Math.PI * (1 - frac)) {
-            cell = { ch: " ", fg: zoneColor(v), bg: zoneColor(v) };
-          }
-        }
-      }
-      out.push(cell);
-    }
-    rows.push(out);
+    rows.push(
+      Array.from({ length: width }, (_, col) =>
+        gaugeCell(col - cx, cy - row, dial, style, frac),
+      ),
+    );
   }
 
-  const aN = Math.PI * (1 - frac);
-  for (let k = 0.2; k <= 0.85; k += 0.325) {
-    const c = Math.round(cx + Math.cos(aN) * r * k);
-    const needleRow = rows[Math.round(cy - Math.sin(aN) * r * k)];
-    if (needleRow && c >= 0 && c < width) {
-      needleRow[c] = { ch: "│", fg: "#e0e6fa" };
-    }
-  }
-  const tipC = Math.round(cx + Math.cos(aN) * r);
-  const tipRow = rows[Math.round(cy - Math.sin(aN) * r)];
-  if (tipRow && tipC >= 0 && tipC < width) {
-    tipRow[tipC] = { ch: "▌", fg: "#e0e6fa" };
-  }
-
+  drawNeedle(rows, dial, frac, width);
   return rows;
+}
+
+interface DialGeometry {
+  cx: number;
+  cy: number;
+  /** Radius of the arc itself; ticks sit just outside it. */
+  r: number;
+}
+
+interface DialStyle {
+  color: string;
+  warnColor: string;
+  dangerColor: string;
+  warnAt: number;
+  dangerAt: number;
+  showTicks: boolean;
+}
+
+function gaugeZoneColor(v: number, style: DialStyle): string {
+  if (v >= style.dangerAt) return style.dangerColor;
+  if (v >= style.warnAt) return style.warnColor;
+  return style.color;
+}
+
+/** Ticks sit in a thin band outside the arc, at each quarter of the sweep. */
+function isTickMark(dist: number, r: number, v: number): boolean {
+  if (dist < r + 0.9 || dist > r + 1.3) return false;
+  const nearest = Math.round(v * 4) / 4;
+  return Math.abs(v - nearest) < 0.02;
+}
+
+/**
+ * One cell of the dial, given its offset from the centre. `dy` counts upwards,
+ * so the lower half of the grid — below the dial — is blank.
+ */
+function gaugeCell(
+  dx: number,
+  dy: number,
+  dial: DialGeometry,
+  style: DialStyle,
+  frac: number,
+): CursorCell {
+  const blank: CursorCell = { ch: " ", fg: style.color };
+  if (dy < 0) return blank;
+
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const a = Math.atan2(dy, dx);
+  // `a` runs PI (left, the minimum) to 0 (right, the maximum), so the
+  // position along the sweep is its complement. Ticks are unaffected:
+  // {0, .25, .5, .75, 1} is symmetric under v -> 1 - v.
+  const v = 1 - a / Math.PI;
+
+  if (style.showTicks && isTickMark(dist, dial.r, v)) return { ch: "·", fg: DIM };
+
+  // Paint from the start of the sweep up to the needle at PI * (1 - frac),
+  // so the arc fills as the value rises.
+  const onArc = dist >= dial.r - 0.7 && dist <= dial.r + 0.7;
+  if (onArc && a >= Math.PI * (1 - frac)) {
+    const zone = gaugeZoneColor(v, style);
+    return { ch: " ", fg: zone, bg: zone };
+  }
+  return blank;
+}
+
+function paintNeedle(
+  rows: CursorCell[][],
+  dial: DialGeometry,
+  angle: number,
+  along: number,
+  width: number,
+  ch: string,
+): void {
+  const c = Math.round(dial.cx + Math.cos(angle) * dial.r * along);
+  const row = rows[Math.round(dial.cy - Math.sin(angle) * dial.r * along)];
+  if (row && c >= 0 && c < width) row[c] = { ch, fg: "#e0e6fa" };
+}
+
+/** A stem of three marks along the needle, capped by a wider tip at the arc. */
+function drawNeedle(
+  rows: CursorCell[][],
+  dial: DialGeometry,
+  frac: number,
+  width: number,
+): void {
+  const angle = Math.PI * (1 - frac);
+  for (let along = 0.2; along <= 0.85; along += 0.325) {
+    paintNeedle(rows, dial, angle, along, width, "│");
+  }
+  paintNeedle(rows, dial, angle, 1, width, "▌");
 }
 
 /* -------------------------------- heatmap ------------------------------- */
@@ -707,61 +851,79 @@ export function renderCandles(
   const hi = Math.max(...candles.map((c) => c.high));
   const span = hi - lo || 1;
   const scale = (v: number) => Math.round(((v - lo) / span) * (hpx - 1));
+  const columnOf = (i: number) => i * gw + Math.floor((gw - 1) / 2);
+  const spans = candles.map((c) => candleSpan(c, scale, up, down));
 
   const rows: CursorCell[][] = [];
   for (let r = 0; r < height; r++) {
-    const row: CursorCell[] = Array.from({ length: width }, () => ({
-      ch: " ",
-      fg: wick,
-    }));
-    for (let i = 0; i < n; i++) {
-      const col = i * gw + Math.floor((gw - 1) / 2);
-      const c = candles[i];
-      if (col >= width || !c) continue;
-      const color = c.close >= c.open ? up : down;
-      const wLo = Math.min(scale(c.high), scale(c.low));
-      const wHi = Math.max(scale(c.high), scale(c.low));
-      const bLo = Math.min(scale(c.open), scale(c.close));
-      const bHi = Math.max(scale(c.open), scale(c.close));
-      const p = r * 2;
-      const inBody = (px: number) => px >= bLo && px <= bHi;
-      const inWick = (px: number) => px >= wLo && px <= wHi;
-      const pT = inBody(p);
-      const pB = inBody(p + 1);
-      if (pT || pB) {
-        row[col] = { ch: halfBlock(pT, pB), fg: color };
-        continue;
-      }
-      const wT = inWick(p);
-      const wB = inWick(p + 1);
-      if (wT || wB) {
-        // A wick that fills the whole cell draws as a line rather than a
-        // full block, so it stays thinner than the body next to it.
-        row[col] = { ch: wT && wB ? "│" : halfBlock(wT, wB), fg: wick };
-      }
-    }
+    const row: CursorCell[] = Array.from({ length: width }, () => ({ ch: " ", fg: wick }));
+    spans.forEach((candleAt, i) => {
+      const col = columnOf(i);
+      const cell = col < width ? candleCell(candleAt, r, wick) : null;
+      if (cell) row[col] = cell;
+    });
     rows.push(row);
   }
 
-  if (showLabels) {
-    const labelRow: CursorCell[] = Array.from({ length: width }, () => ({
-      ch: " ",
-      fg: DIM,
-    }));
-    const step = Math.max(1, Math.ceil(n / Math.max(1, Math.floor(width / 4))));
-    for (let i = 0; i < n; i += step) {
-      const text = String(i);
-      const col = i * gw + Math.floor((gw - 1) / 2);
-      for (let k = 0; k < text.length; k++) {
-        const c = col + k;
-        const ch = text[k];
-        if (c < width && ch !== undefined) labelRow[c] = { ch, fg: DIM };
-      }
-    }
-    rows.push(labelRow);
-  }
-
+  if (showLabels) rows.push(candleLabelRow(n, width, columnOf));
   return rows;
+}
+
+interface CandleSpan {
+  /** Half-cell rows the open-to-close body covers. */
+  bodyLo: number;
+  bodyHi: number;
+  /** Half-cell rows the high-to-low wick covers. */
+  wickLo: number;
+  wickHi: number;
+  color: string;
+}
+
+function candleSpan(
+  c: Candle,
+  scale: (v: number) => number,
+  up: string,
+  down: string,
+): CandleSpan {
+  const open = scale(c.open);
+  const close = scale(c.close);
+  const high = scale(c.high);
+  const low = scale(c.low);
+  return {
+    bodyLo: Math.min(open, close),
+    bodyHi: Math.max(open, close),
+    wickLo: Math.min(high, low),
+    wickHi: Math.max(high, low),
+    color: c.close >= c.open ? up : down,
+  };
+}
+
+/** What row `r` of this candle's column shows, or `null` where the candle
+ *  does not reach. The body wins wherever the two overlap. */
+function candleCell(span: CandleSpan, r: number, wick: string): CursorCell | null {
+  const p = r * 2;
+  const covers = (lo: number, hi: number, px: number) => px >= lo && px <= hi;
+
+  const bodyTop = covers(span.bodyLo, span.bodyHi, p);
+  const bodyBottom = covers(span.bodyLo, span.bodyHi, p + 1);
+  if (bodyTop || bodyBottom) return { ch: halfBlock(bodyTop, bodyBottom), fg: span.color };
+
+  const wickTop = covers(span.wickLo, span.wickHi, p);
+  const wickBottom = covers(span.wickLo, span.wickHi, p + 1);
+  if (!wickTop && !wickBottom) return null;
+  // A wick that fills the whole cell draws as a line rather than a full
+  // block, so it stays thinner than the body next to it.
+  const ch = wickTop && wickBottom ? "│" : halfBlock(wickTop, wickBottom);
+  return { ch, fg: wick };
+}
+
+/** Index labels under the candles, thinned out to roughly one per four
+ *  columns. */
+function candleLabelRow(n: number, width: number, columnOf: (i: number) => number): CursorCell[] {
+  const row: CursorCell[] = Array.from({ length: width }, () => ({ ch: " ", fg: DIM }));
+  const step = Math.max(1, Math.ceil(n / Math.max(1, Math.floor(width / 4))));
+  for (let i = 0; i < n; i += step) writeText(row, columnOf(i), String(i), width, DIM);
+  return row;
 }
 
 /* -------------------------------- scatter ------------------------------- */
@@ -802,39 +964,9 @@ export function renderScatter(
   const sy = (y: number) =>
     Math.round(((y - loY) / (hiY - loY || 1)) * (height * 2 - 4)) + 1;
 
-  const rows: CursorCell[][] = [];
-  for (let r = 0; r < height; r++) {
-    const row: CursorCell[] = [];
-    for (let c = 0; c < width; c++) {
-      const gx = gridlines && c > 0 && c < width - 1 && (c - 1) % Math.max(1, Math.floor((width - 3) / 4)) === 0;
-      const gy = gridlines && r > 0 && r < height - 1 && (height - 1 - r) % Math.max(1, Math.floor((height - 1) / 4)) === 0;
-      row.push(gx || gy ? { ch: "·", fg: DIM } : { ch: " ", fg: INK });
-    }
-    rows.push(row);
-  }
-
-  for (const s of series) {
-    for (const p of s.points) {
-      const c = sx(p.x);
-      const targetRow = rows[Math.min(height - 1, Math.round((height * 2 - 2 - sy(p.y)) / 2))];
-      const cur = c >= 0 && c < width ? targetRow?.[c] : undefined;
-      if (targetRow && cur) {
-        targetRow[c] =
-          cur.ch !== " " && cur.ch !== "·"
-            ? { ch: "✚", fg: "#e0e6fa" }
-            : { ch: "●", fg: s.color };
-      }
-    }
-  }
-
-  rows.push([
-    { ch: `${loX}`, fg: DIM },
-    {
-      ch: " ".repeat(Math.max(0, width - String(loX).length - String(hiX).length - 2)),
-      fg: DIM,
-    },
-    { ch: `${hiX}`, fg: DIM },
-  ]);
+  const rows = scatterGrid(width, height, gridlines);
+  plotPoints(rows, series, width, height, sx, sy);
+  rows.push(axisRow(loX, hiX, width));
 
   if (legend) {
     rows.push([]);
@@ -848,6 +980,56 @@ export function renderScatter(
   }
 
   return rows;
+}
+
+/** The empty plot: dotted gridlines at roughly every quarter of each axis,
+ *  never on the outermost row or column. */
+function scatterGrid(width: number, height: number, gridlines: boolean): CursorCell[][] {
+  const everyX = Math.max(1, Math.floor((width - 3) / 4));
+  const everyY = Math.max(1, Math.floor((height - 1) / 4));
+  const rows: CursorCell[][] = [];
+  for (let r = 0; r < height; r++) {
+    const onRowLine = gridlines && r > 0 && r < height - 1 && (height - 1 - r) % everyY === 0;
+    rows.push(
+      Array.from({ length: width }, (_, c) => {
+        const onColLine = gridlines && c > 0 && c < width - 1 && (c - 1) % everyX === 0;
+        return onColLine || onRowLine ? { ch: "·", fg: DIM } : { ch: " ", fg: INK };
+      }),
+    );
+  }
+  return rows;
+}
+
+function plotPoints(
+  rows: CursorCell[][],
+  series: ScatterSeries[],
+  width: number,
+  height: number,
+  sx: (x: number) => number,
+  sy: (y: number) => number,
+): void {
+  for (const s of series) {
+    for (const p of s.points) {
+      const c = sx(p.x);
+      const row = rows[Math.min(height - 1, Math.round((height * 2 - 2 - sy(p.y)) / 2))];
+      const cur = c >= 0 && c < width ? row?.[c] : undefined;
+      if (!row || !cur) continue;
+      // Two series landing on the same cell mark it as a collision rather
+      // than letting the later one claim it.
+      const taken = cur.ch !== " " && cur.ch !== "·";
+      row[c] = taken ? { ch: "✚", fg: "#e0e6fa" } : { ch: "●", fg: s.color };
+    }
+  }
+}
+
+/** The x-axis bounds, pushed to opposite ends of the plot. */
+function axisRow(loX: number, hiX: number, width: number): CursorCell[] {
+  const gap = Math.max(0, width - String(loX).length - String(hiX).length - 2);
+  return [
+    { ch: `${loX}`, fg: DIM },
+    { ch: " ".repeat(gap), fg: DIM },
+    { ch: `${hiX}`, fg: DIM },
+  ];
 }
 
 /* --------------------------------- funnel -------------------------------- */
