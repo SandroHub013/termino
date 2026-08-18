@@ -2,12 +2,12 @@
   "ci": {
     "collect": {
       "numberOfRuns": 1,
-      "startServerCommand": "python3 -m http.server 4173 --directory out",
+      "startServerCommand": "python3 -m http.server 4173 --directory site",
       "startServerReadyPattern": "Serving HTTP",
       "url": [
-        "http://localhost:4173/",
-        "http://localhost:4173/docs/components/",
-        "http://localhost:4173/docs/custom/"
+        "http://localhost:4173/termino/",
+        "http://localhost:4173/termino/docs/components/",
+        "http://localhost:4173/termino/docs/custom/"
       ],
       "settings": {
         "preset": "desktop"
